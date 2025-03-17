@@ -9,7 +9,7 @@ function App() {
     <Router>
       <div className="app">
         <header className="app-header">
-          <h1>Poker Tournament Tracker</h1>
+          <h1>StackTrack</h1>
           <nav>
             <ul>
               <li><Link to="/">Home</Link></li>
@@ -29,7 +29,7 @@ function App() {
         </main>
         
         <footer>
-          <p>&copy; 2025 Poker Tournament Tracker</p>
+          <p>&copy; 2025 StackTrack</p>
         </footer>
       </div>
     </Router>
