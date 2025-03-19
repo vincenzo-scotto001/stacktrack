@@ -21,7 +21,7 @@ function Dashboard() {
       
       setUser(session.user);
       
-      // Fetch user profile from profiles table
+      // Fetch user profile from stacktrackmaster table
       try {
         const { data, error } = await supabase
           .from('stacktrackmaster')
@@ -68,8 +68,8 @@ function Dashboard() {
       
       <div className="dashboard-actions">
         <h3>Quick Actions</h3>
-        <button>View My Tournaments</button>
-        <button>Register for a Tournament</button>
+        <button onClick={() => navigate('/register-tournament')}>Add a Tournament</button>
+        <button onClick={() => navigate('/tournaments')}>View My Tournaments</button>
         <button>View Stats</button>
       </div>
       

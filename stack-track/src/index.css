@@ -203,3 +203,172 @@ footer {
 .login-now:hover {
   background-color: #2980b9;
 }
+
+/* Tournament page styles */
+.tournaments-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.tournaments-page h2 {
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #3498db;
+  padding-bottom: 0.5rem;
+}
+
+.no-tournaments {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 5px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  margin: 2rem 0;
+}
+
+.register-btn {
+  margin-top: 1rem;
+  background-color: #3498db;
+}
+
+.back-btn {
+  margin-top: 1.5rem;
+  background-color: #7f8c8d;
+}
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+  font-style: italic;
+  color: #7f8c8d;
+}
+
+/* Tournament table styles */
+.tournament-table-container {
+  overflow-x: auto;
+  background-color: white;
+  border-radius: 5px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin: 1.5rem 0;
+}
+
+.tournament-table {
+  width: 100%;
+  border-collapse: collapse;
+  white-space: nowrap;
+}
+
+.tournament-table th,
+.tournament-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #ecf0f1;
+}
+
+.tournament-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #2c3e50;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.tournament-table th:hover {
+  background-color: #e9ecef;
+}
+
+.tournament-table tbody tr {
+  transition: background-color 0.2s;
+}
+
+.tournament-table tbody tr:hover {
+  background-color: #f1f8ff;
+}
+
+/* Striped rows for better readability */
+.tournament-table tbody tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+.tournament-table tbody tr:nth-child(even):hover {
+  background-color: #f1f8ff;
+}
+
+.sort-icon {
+  margin-left: 0.25rem;
+  display: inline-block;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .tournament-table th,
+  .tournament-table td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.9rem;
+  }
+  
+  .tournaments-page {
+    padding: 1rem;
+  }
+}
+
+/* Add Tournament form styles */
+.add-tournament {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: white;
+  border-radius: 5px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.add-tournament h2 {
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #3498db;
+  padding-bottom: 0.5rem;
+}
+
+.form-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.cancel-btn {
+  background-color: #7f8c8d;
+}
+
+.cancel-btn:hover {
+  background-color: #6c7a7d;
+}
+
+/* Make date inputs look consistent across browsers */
+input[type="date"] {
+  appearance: none;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+/* Style number inputs */
+input[type="number"] {
+  appearance: textfield;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.input-help {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: #7f8c8d;
+  font-style: italic;
+}

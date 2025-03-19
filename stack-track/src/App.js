@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import SignUp from './components/signup';
 import SignIn from './components/signin';
 import Dashboard from './components/Dashboard';
+import TournamentsPage from './components/TournamentsPage';
+import AddTournament from './components/AddTournament';
 
 function App() {
   return (
@@ -25,6 +27,8 @@ function App() {
             <Route path="/signup" element={<SignUp />} />
             <Route path="/signin" element={<SignIn />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/tournaments" element={<TournamentsPage />} />
+            <Route path="/register-tournament" element={<AddTournament />} />
           </Routes>
         </main>
         
