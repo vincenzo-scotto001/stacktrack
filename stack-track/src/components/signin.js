@@ -25,7 +25,7 @@ function SignIn() {
     
     try {
       // Authenticate user with Supabase
-      const { user, error: authError } = await supabase.auth.signInWithPassword({
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password
       });
@@ -33,10 +33,12 @@ function SignIn() {
       if (authError) throw authError;
       
       // If successful, redirect to dashboard
-      if (user) {
+      if (data.user) {
+        console.log("Login successful, redirecting to dashboard");
         navigate('/dashboard');
       }
     } catch (err) {
+      console.error("Login error:", err);
       setError(err.message || 'An error occurred during sign in');
     } finally {
       setLoading(false);

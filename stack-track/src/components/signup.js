@@ -13,6 +13,7 @@ function SignUp() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -28,40 +29,57 @@ function SignUp() {
     
     try {
       // Register the user in Supabase Auth
-      const { user, error: authError } = await supabase.auth.signUp({
+      const { data, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password
       });
       
       if (authError) throw authError;
       
-      // If auth successful, store additional user data in profiles table
-      if (user) {
+      // If auth successful, store additional user data in stacktrackmaster table
+      if (data.user) {
         const { error: profileError } = await supabase
-          .from('profiles')
+          .from('stacktrackmaster')
           .insert([
             {
-              id: user.id,
+              id: data.user.id,
               first_name: formData.firstName,
               last_name: formData.lastName,
               email: formData.email,
-              phone: formData.phone,
-              created_at: new Date()
+              phone_number: formData.phone,
+              datetime: new Date()
             }
           ]);
           
         if (profileError) throw profileError;
         
-        // Redirect to sign in page after successful registration
-        alert('Registration successful! Please sign in.');
-        navigate('/signin');
+        // Show success message
+        setSuccess(true);
+        
+        // Redirect to sign in page after 3 seconds
+        setTimeout(() => {
+          navigate('/signin');
+        }, 3000);
       }
     } catch (err) {
       setError(err.message);
-    } finally {
       setLoading(false);
     }
   };
+
+  if (success) {
+    return (
+      <div className="signup-success">
+        <h2>Thank you for signing up!</h2>
+        <p>Your account has been created successfully.</p>
+        <p>Please log in now to view your dashboard.</p>
+        <p>Redirecting you to the login page in 3 seconds...</p>
+        <button onClick={() => navigate('/signin')} className="login-now">
+          Log In Now
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="signup">
@@ -93,6 +111,18 @@ function SignUp() {
             required
           />
         </div>
+
+        <div className="form-group">
+          <label htmlFor="phone">Phone Number</label>
+          <input
+            type="tel"
+            id="phone"
+            name="phone"
+            value={formData.phone}
+            onChange={handleChange}
+            required
+          />
+        </div>
         
         <div className="form-group">
           <label htmlFor="email">Email</label>
@@ -101,18 +131,6 @@ function SignUp() {
             id="email"
             name="email"
             value={formData.email}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        
-        <div className="form-group">
-          <label htmlFor="phone">Phone Number</label>
-          <input
-            type="tel"
-            id="phone"
-            name="phone"
-            value={formData.phone}
             onChange={handleChange}
             required
           />

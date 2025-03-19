@@ -24,7 +24,7 @@ function Dashboard() {
       // Fetch user profile from profiles table
       try {
         const { data, error } = await supabase
-          .from('profiles')
+          .from('stacktrackmaster')
           .select('*')
           .eq('id', session.user.id)
           .single();
