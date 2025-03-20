@@ -7,6 +7,7 @@ function AddTournament() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
   const [formData, setFormData] = useState({
     tournament_name: '',
     date: '',
@@ -49,7 +50,7 @@ function AddTournament() {
     try {
       // Format data for insertion
       const tournamentData = {
-        user_id: user.id,
+        id: user.id,
         tournament_name: formData.tournament_name,
         date: formData.date,
         location: formData.location,
@@ -66,9 +67,17 @@ function AddTournament() {
         
       if (insertError) throw insertError;
       
-      // Redirect to tournaments page on success
-      alert('Tournament added successfully!');
-      navigate('/tournaments');
+      // Show success message
+      setSuccess(true);
+      setFormData({
+        tournament_name: '',
+        date: '',
+        location: '',
+        buy_in: '',
+        action_sold: '',
+        place: '',
+        winnings: ''
+      });
       
     } catch (err) {
       setError(err.message);
@@ -76,6 +85,39 @@ function AddTournament() {
       setLoading(false);
     }
   };
+
+  const resetForm = () => {
+    setSuccess(false);
+    setFormData({
+      tournament_name: '',
+      date: '',
+      location: '',
+      buy_in: '',
+      action_sold: '',
+      place: '',
+      winnings: ''
+    });
+  };
+
+  if (success) {
+    return (
+      <div className="add-tournament-success">
+        <div className="success-content">
+          <h2>Tournament Added Successfully!</h2>
+          <p>Your tournament has been added to your records.</p>
+          
+          <div className="success-buttons">
+            <button onClick={resetForm} className="add-another-btn">
+              Add Another Tournament
+            </button>
+            <button onClick={() => navigate('/dashboard')} className="return-dashboard-btn">
+              Return to Dashboard
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="add-tournament">
