@@ -5,6 +5,7 @@ import SignIn from './components/signin';
 import Dashboard from './components/Dashboard';
 import TournamentsPage from './components/TournamentsPage';
 import AddTournament from './components/AddTournament';
+import Stats from './components/Stats';
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/tournaments" element={<TournamentsPage />} />
             <Route path="/register-tournament" element={<AddTournament />} />
+            <Route path="/stats" element={<Stats />} />
           </Routes>
         </main>
         

@@ -70,7 +70,7 @@ function Dashboard() {
         <h3>Quick Actions</h3>
         <button onClick={() => navigate('/register-tournament')}>Add a Tournament</button>
         <button onClick={() => navigate('/tournaments')}>View My Tournaments</button>
-        <button>View Stats</button>
+        <button onClick={() => navigate('/stats')}>View Stats</button>
       </div>
       
       <button onClick={handleSignOut} className="sign-out">
