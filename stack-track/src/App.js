@@ -6,6 +6,7 @@ import Dashboard from './components/Dashboard';
 import TournamentsPage from './components/TournamentsPage';
 import AddTournament from './components/AddTournament';
 import Stats from './components/Stats';
+import Home from './components/Home';
 
 function App() {
   return (
@@ -42,14 +43,5 @@ function App() {
   );
 }
 
-// Simple Home component
-function Home() {
-  return (
-    <div className="home">
-      <h2>Welcome to StackTrack!</h2>
-      <p>Track your poker tournaments, statistics, and connect with other players.</p>
-    </div>
-  );
-}
 
 export default App;
