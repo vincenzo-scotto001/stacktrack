@@ -842,3 +842,15 @@ input[type="number"]::-webkit-inner-spin-button {
     font-size: 1.1rem;
   }
 }
+
+/* Add this style to your index.css file */
+
+.logo-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.logo-link:hover {
+  text-decoration: none;
+  color: inherit;
+}

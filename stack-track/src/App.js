@@ -13,10 +13,11 @@ function App() {
     <Router>
       <div className="app">
         <header className="app-header">
-          <h1>StackTrack</h1>
+        <Link to="/" className="logo-link">
+            <h1>StackTrack</h1>
+          </Link>
           <nav>
             <ul>
-              <li><Link to="/">Home</Link></li>
               <li><Link to="/signup">Sign Up</Link></li>
               <li><Link to="/signin">Sign In</Link></li>
             </ul>
