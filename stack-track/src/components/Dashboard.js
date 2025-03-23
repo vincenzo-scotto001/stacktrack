@@ -28,8 +28,11 @@ function Dashboard() {
           .select('*')
           .eq('id', session.user.id)
           .single();
+          console.log("Query result:", data, error);
           
         if (error) throw error;
+
+        
         
         setProfile(data);
       } catch (err) {
@@ -53,7 +56,7 @@ function Dashboard() {
 
   return (
     <div className="dashboard">
-      <h2>Welcome to Your Dashboard</h2>
+      <h2>Welcome to Your Dashboard, {profile.first_name}.</h2>
       
       {error && <div className="error">{error}</div>}
       
