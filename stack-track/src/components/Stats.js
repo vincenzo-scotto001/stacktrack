@@ -120,7 +120,7 @@ function Stats() {
           <p>You haven't played in any tournaments yet.</p>
           <p>Your statistics will appear here once you've added some tournaments.</p>
           <button onClick={() => navigate('/register-tournament')} className="register-btn">
-            Register for a Tournament
+            Add a Tournament
           </button>
         </div>
       ) : (
