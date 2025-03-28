@@ -50,7 +50,6 @@ function AddTournament() {
     try {
       // Format data for insertion
       const tournamentData = {
-        id: user.id,
         tournament_name: formData.tournament_name,
         date: formData.date,
         location: formData.location,
