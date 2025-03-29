@@ -40,9 +40,9 @@ function Home() {
             <p>Keep track of action sold and calculate your actual profits accounting for backers and stakes.</p>
           </div>
           <div className="feature-card">
-            <div className="feature-icon">📱</div>
-            <h3>Access Anywhere</h3>
-            <p>Use StackTrack on any device, anytime you need to check your stats or add a new tournament.</p>
+          <div className="feature-icon">🏆</div>
+            <h3>Tourney Journeys</h3>
+            <p>Plan and track entire tournament series with our spreadsheet-like interface. Perfect for selling action!</p>
           </div>
         </div>
       </section>
