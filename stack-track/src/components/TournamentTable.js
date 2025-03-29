@@ -1,6 +1,13 @@
 import React from 'react';
 
-function TournamentTable({ tournaments, onSort, sortConfig }) {
+function TournamentTable({ 
+  tournaments, 
+  onSort, 
+  sortConfig, 
+  isSelectMode = false, 
+  selectedTournaments = [], 
+  onSelectTournament = () => {} 
+}) {
   // Helper function to format money
   const formatMoney = (amount) => {
     return new Intl.NumberFormat('en-US', {
@@ -25,6 +32,11 @@ function TournamentTable({ tournaments, onSort, sortConfig }) {
       <table className="tournament-table">
         <thead>
           <tr>
+            {isSelectMode && (
+              <th className="select-column">
+                Select
+              </th>
+            )}
             <th onClick={() => onSort('tournament_name')}>
               Tournament Name
               {sortConfig.field === 'tournament_name' && (
@@ -81,7 +93,19 @@ function TournamentTable({ tournaments, onSort, sortConfig }) {
             const profit = (tournament.winnings || 0) - tournament.buy_in;
             
             return (
-              <tr key={tournament.id}>
+              <tr 
+                key={tournament.id} 
+                className={isSelectMode && selectedTournaments.includes(tournament.id) ? 'selected-row' : ''}
+              >
+                {isSelectMode && (
+                  <td className="select-column">
+                    <input 
+                      type="checkbox"
+                      checked={selectedTournaments.includes(tournament.id)}
+                      onChange={() => onSelectTournament(tournament.id)}
+                    />
+                  </td>
+                )}
                 <td>{tournament.tournament_name}</td>
                 <td>{formatDate(tournament.date)}</td>
                 <td>{tournament.location}</td>

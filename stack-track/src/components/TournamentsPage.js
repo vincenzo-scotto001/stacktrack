@@ -16,9 +16,89 @@ function TournamentsPage() {
   const [dateRange, setDateRange] = useState({ from: '', to: '' });
   const [locationFilter, setLocationFilter] = useState('');
   const [sortConfig, setSortConfig] = useState({ field: 'date', direction: 'desc' });
+
+  const [selectedTournaments, setSelectedTournaments] = useState([]);
+  const [isSelectMode, setIsSelectMode] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   // Available locations for filter dropdown
   const [availableLocations, setAvailableLocations] = useState([]);
+
+  const handleTournamentSelect = (tournamentId) => {
+    setSelectedTournaments(prev => {
+      if (prev.includes(tournamentId)) {
+        return prev.filter(id => id !== tournamentId);
+      } else {
+        return [...prev, tournamentId];
+      }
+    });
+  };
+  
+  // Toggle selection mode
+  const toggleSelectMode = () => {
+    setIsSelectMode(!isSelectMode);
+    
+    // Clear selections when exiting select mode
+    if (isSelectMode) {
+      setSelectedTournaments([]);
+    }
+  };
+  
+  // Select or deselect all tournaments
+  const handleSelectAll = (selectAll) => {
+    if (selectAll) {
+      const allIds = filteredTournaments.map(tournament => tournament.id);
+      setSelectedTournaments(allIds);
+    } else {
+      setSelectedTournaments([]);
+    }
+  };
+  
+  // Delete selected tournaments
+  const deleteSelectedTournaments = async () => {
+    if (selectedTournaments.length === 0) {
+      alert('Please select tournaments to delete.');
+      return;
+    }
+    
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete ${selectedTournaments.length} tournament${selectedTournaments.length > 1 ? 's' : ''}? This action cannot be undone.`
+    );
+    
+    if (!confirmDelete) return;
+    
+    setIsDeleting(true);
+    
+    try {
+      const { error } = await supabase
+        .from('tournaments')
+        .delete()
+        .in('id', selectedTournaments);
+      
+      if (error) throw error;
+      
+      // Refresh data after deletion
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data, error: fetchError } = await supabase
+        .from('tournaments')
+        .select('*')
+        .eq('user_id', session.user.id);
+        
+      if (fetchError) throw fetchError;
+      
+      setTournaments(data || []);
+      setFilteredTournaments(data || []);
+      setSelectedTournaments([]);
+      setIsSelectMode(false);
+      
+      alert('Selected tournaments have been deleted successfully.');
+    } catch (err) {
+      console.error('Error deleting tournaments:', err);
+      alert(`Error deleting tournaments: ${err.message}`);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   useEffect(() => {
     // Check if user is authenticated
@@ -264,6 +344,9 @@ function TournamentsPage() {
           tournaments={filteredTournaments} 
           onSort={handleSort} 
           sortConfig={sortConfig}
+          isSelectMode={isSelectMode}
+          selectedTournaments={selectedTournaments}
+          onSelectTournament={handleTournamentSelect}
         />
       ) : (
         <div className="no-tournaments">
@@ -281,6 +364,32 @@ function TournamentsPage() {
         <button onClick={() => navigate('/dashboard')} className="back-btn">
           Back to Dashboard
         </button>
+        
+        <button 
+          onClick={toggleSelectMode} 
+          className={`select-mode-btn ${isSelectMode ? 'active' : ''}`}
+        >
+          {isSelectMode ? 'Cancel Selection' : 'Select Tournaments'}
+        </button>
+        
+        {isSelectMode && (
+          <>
+            <button 
+              onClick={() => handleSelectAll(selectedTournaments.length < filteredTournaments.length)} 
+              className="select-all-btn"
+            >
+              {selectedTournaments.length < filteredTournaments.length ? 'Select All' : 'Deselect All'}
+            </button>
+            
+            <button 
+              onClick={deleteSelectedTournaments} 
+              className="delete-btn"
+              disabled={selectedTournaments.length === 0 || isDeleting}
+            >
+              {isDeleting ? 'Deleting...' : `Delete Selected (${selectedTournaments.length})`}
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
