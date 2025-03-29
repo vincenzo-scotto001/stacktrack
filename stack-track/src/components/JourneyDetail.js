@@ -51,7 +51,9 @@ function JourneyDetail({ journey, onBack }) {
           buy_in: tournament.buy_in,
           action_sold: tournament.action_sold,
           notes: tournament.notes,
-          is_completed: tournament.is_completed
+          is_completed: tournament.is_completed,
+          place: tournament.place,
+          winnings: tournament.winnings
         })
         .eq('id', tournamentId);
         
@@ -81,7 +83,9 @@ function JourneyDetail({ journey, onBack }) {
             buy_in: tournament.buy_in,
             action_sold: tournament.action_sold,
             notes: tournament.notes,
-            is_completed: tournament.is_completed
+            is_completed: tournament.is_completed,
+            place: tournament.is_completed ? tournament.place : null,
+            winnings: tournament.is_completed ? tournament.winnings : null
           })
           .eq('id', tournament.id)
       );
@@ -141,8 +145,8 @@ function JourneyDetail({ journey, onBack }) {
         location: tournament.location,
         buy_in: tournament.buy_in,
         action_sold: tournament.action_sold,
-        place: null, // Will be updated by user later
-        winnings: null, // Will be updated by user later
+        place: tournament.place, // Now we include the place from journey
+        winnings: tournament.winnings, // Now we include the winnings from journey
       }));
       
       // Insert into the main tournaments table
@@ -195,6 +199,20 @@ function JourneyDetail({ journey, onBack }) {
     }
   };
 
+  // Calculate total winnings (for completed tournaments)
+  const calculateTotalWinnings = () => {
+    return editedTournaments
+      .filter(t => t.is_completed && t.winnings)
+      .reduce((sum, t) => sum + (parseFloat(t.winnings) || 0), 0);
+  };
+
+  // Calculate profit/loss
+  const calculateProfitLoss = () => {
+    const totalBuyIns = editedTournaments.reduce((sum, t) => sum + (parseFloat(t.buy_in) || 0), 0);
+    const totalWinnings = calculateTotalWinnings();
+    return totalWinnings - totalBuyIns;
+  };
+
   return (
     <div className="journey-detail">
       <div className="journey-detail-header">
@@ -224,6 +242,22 @@ function JourneyDetail({ journey, onBack }) {
             <label>Number of Tournaments:</label>
             <span>{journey.tournaments.length}</span>
           </div>
+          
+          {/* Show profit/loss for completed tournaments */}
+          {editedTournaments.some(t => t.is_completed) && (
+            <>
+              <div className="journey-info-item">
+                <label>Total Winnings:</label>
+                <span>{formatMoney(calculateTotalWinnings())}</span>
+              </div>
+              <div className="journey-info-item">
+                <label>Profit/Loss:</label>
+                <span className={calculateProfitLoss() >= 0 ? 'positive' : 'negative'}>
+                  {formatMoney(calculateProfitLoss())}
+                </span>
+              </div>
+            </>
+          )}
         </div>
         
         <div className="journey-actions">
@@ -256,6 +290,13 @@ function JourneyDetail({ journey, onBack }) {
             <div className="tournament-cell">Action Sold</div>
             <div className="tournament-cell">Notes</div>
             <div className="tournament-cell">Status</div>
+            {/* Show Place and Winnings columns for completed tournaments */}
+            {editedTournaments.some(t => t.is_completed) && (
+              <>
+                <div className="tournament-cell">Place</div>
+                <div className="tournament-cell">Winnings</div>
+              </>
+            )}
             {isEditing && <div className="tournament-cell">Actions</div>}
           </div>
           
@@ -354,6 +395,41 @@ function JourneyDetail({ journey, onBack }) {
                     </span>
                   )}
                 </div>
+                
+                {/* Place and Winnings fields appear for completed tournaments */}
+                {(tournament.is_completed || editedTournaments.some(t => t.is_completed)) && (
+                  <>
+                    <div className="tournament-cell">
+                      {isEditing && tournament.is_completed ? (
+                        <input
+                          type="number"
+                          value={tournament.place || ''}
+                          onChange={(e) => handleTournamentChange(index, 'place', e.target.value)}
+                          min="1"
+                          step="1"
+                          placeholder="Place"
+                        />
+                      ) : (
+                        tournament.is_completed ? (tournament.place || 'N/A') : '-'
+                      )}
+                    </div>
+                    <div className="tournament-cell">
+                      {isEditing && tournament.is_completed ? (
+                        <input
+                          type="number"
+                          value={tournament.winnings || ''}
+                          onChange={(e) => handleTournamentChange(index, 'winnings', e.target.value)}
+                          min="0"
+                          step="any"
+                          placeholder="$0"
+                        />
+                      ) : (
+                        tournament.is_completed ? formatMoney(tournament.winnings || 0) : '-'
+                      )}
+                    </div>
+                  </>
+                )}
+                
                 {isEditing && (
                   <div className="tournament-cell">
                     <button
