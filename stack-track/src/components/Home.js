@@ -76,11 +76,11 @@ function Home() {
         <div className="faq-grid">
           <div className="faq-item">
             <h3>Is StackTrack free to use?</h3>
-            <p>Yes! StackTrack is completely free to use with all features included. No hidden fees or premium tiers.</p>
+            <p>Yes! StackTrack is completely free to use with all features included. No hidden fees or premium tiers (yet).</p>
           </div>
           <div className="faq-item">
             <h3>Can I export my data?</h3>
-            <p>We're working on an export feature that will allow you to download your data in CSV format. Coming soon!</p>
+            <p>Yes, you can easily download all of your data as a CSV file using our export feature.</p>
           </div>
           <div className="faq-item">
             <h3>Is my data secure?</h3>
