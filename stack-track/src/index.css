@@ -1213,3 +1213,465 @@ input[type="number"]::-webkit-inner-spin-button {
 .tournament-table tbody tr.selected-row:nth-child(even):hover {
   background-color: rgba(52, 152, 219, 0.25) !important;
 }
+
+/* Journey page styles */
+.journey-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.journey-page h2 {
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #3498db;
+  padding-bottom: 0.5rem;
+}
+
+.journey-actions {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  justify-content: flex-start;
+}
+
+.journey-actions button {
+  min-width: 180px;
+}
+
+.create-btn {
+  background-color: #3498db;
+}
+
+.create-btn:hover {
+  background-color: #d2b35c;
+}
+
+.cancel-btn {
+  background-color: #7f8c8d;
+}
+
+.cancel-btn:hover {
+  background-color: #d2b35c;
+}
+
+.edit-btn {
+  background-color: #3498db;
+}
+
+.edit-btn:hover {
+  background-color: #2980b9;
+}
+
+.save-btn {
+  background-color: #27ae60;
+}
+
+.save-btn:hover {
+  background-color: #219955;
+}
+
+.delete-btn {
+  background-color: #e74c3c;
+}
+
+.delete-btn:hover {
+  background-color: #c0392b;
+}
+
+.no-journeys {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 5px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  margin: 2rem 0;
+}
+
+.no-journeys p {
+  margin-bottom: 1rem;
+}
+
+/* Journey List Styles */
+.journey-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.journey-card {
+  background-color: white;
+  border-radius: 5px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+
+.journey-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.journey-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #eee;
+}
+
+.journey-card-header h3 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.2rem;
+}
+
+.journey-status {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.3rem 0.6rem;
+  border-radius: 12px;
+}
+
+.journey-status.active {
+  background-color: #3498db;
+  color: white;
+}
+
+.journey-status.completed {
+  background-color: #27ae60;
+  color: white;
+}
+
+.journey-card-body {
+  padding: 1.25rem;
+}
+
+.journey-info {
+  margin-bottom: 1rem;
+}
+
+.journey-dates, .journey-stats {
+  margin-bottom: 0.5rem;
+}
+
+.journey-card-footer {
+  padding: 1rem 1.25rem;
+  border-top: 1px solid #eee;
+  text-align: center;
+}
+
+.view-journey-btn {
+  background-color: transparent;
+  color: #3498db;
+  border: 1px solid #3498db;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.view-journey-btn:hover {
+  background-color: #3498db;
+  color: white;
+}
+
+/* Create Journey Styles */
+.create-journey {
+  background-color: white;
+  border-radius: 5px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.create-journey h3 {
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.5rem;
+}
+
+.journey-details {
+  margin-bottom: 2rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.form-group input, .form-group select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.tournaments-section {
+  margin-bottom: 2rem;
+}
+
+.tournaments-section h4 {
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+.tournaments-table {
+  border: 1px solid #eee;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.tournaments-header {
+  display: flex;
+  background-color: #f8f9fa;
+  font-weight: 600;
+  border-bottom: 2px solid #eee;
+}
+
+.tournament-cell {
+  padding: 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.tournament-cell input, .tournament-cell select {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.action-cell {
+  flex: 0 0 80px;
+  text-align: center;
+}
+
+.tournament-row {
+  display: flex;
+  border-bottom: 1px solid #eee;
+  align-items: center;
+}
+
+.tournament-row:last-child {
+  border-bottom: none;
+}
+
+.add-tournament-row {
+  padding: 1rem;
+  text-align: center;
+  background-color: #f8f9fa;
+  border-top: 1px solid #eee;
+}
+
+.add-tournament-btn {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.add-tournament-btn:hover {
+  background-color: #2980b9;
+}
+
+.remove-btn {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  width: 25px;
+  height: 25px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.remove-btn:hover {
+  background-color: #c0392b;
+}
+
+.journey-summary {
+  background-color: #f8f9fa;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 2rem;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+/* Journey Detail Styles */
+.journey-detail {
+  background-color: white;
+  border-radius: 5px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+}
+
+.journey-detail-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.journey-detail-header h3 {
+  flex: 1;
+  margin: 0 1rem;
+  color: #2c3e50;
+}
+
+.journey-status-badge {
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.status-indicator {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+}
+
+.status-indicator.active {
+  background-color: #3498db;
+}
+
+.status-indicator.completed {
+  background-color: #27ae60;
+}
+
+.journey-info-box {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.journey-info-item {
+  flex: 1;
+  min-width: 200px;
+}
+
+.journey-info-item label {
+  display: block;
+  font-weight: 600;
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.journey-info-item span {
+  font-size: 1.1rem;
+  color: #2c3e50;
+}
+
+.journey-tournaments {
+  margin-top: 2rem;
+}
+
+.journey-tournaments h4 {
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #eee;
+}
+
+.tournament-status {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.tournament-status.active {
+  background-color: rgba(52, 152, 219, 0.1);
+  color: #3498db;
+}
+
+.tournament-status.completed {
+  background-color: rgba(39, 174, 96, 0.1);
+  color: #27ae60;
+}
+
+.update-btn {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.update-btn:hover {
+  background-color: #2980b9;
+}
+
+.update-btn:disabled {
+  background-color: #95a5a6;
+  cursor: not-allowed;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .journey-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .tournament-row, .tournaments-header {
+    flex-direction: column;
+    padding: 0.5rem;
+  }
+  
+  .tournament-cell {
+    width: 100%;
+    padding: 0.5rem;
+  }
+  
+  .form-row {
+    flex-direction: column;
+  }
+  
+  .journey-detail-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .journey-detail-header h3 {
+    margin: 0;
+  }
+}

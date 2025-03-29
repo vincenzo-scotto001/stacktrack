@@ -7,7 +7,8 @@ import Dashboard from './components/Dashboard';
 import TournamentsPage from './components/TournamentsPage';
 import AddTournament from './components/AddTournament';
 import Stats from './components/Stats';
-import Home from './components/Home'; // Assuming you moved the Home component to its own file
+import Home from './components/Home';
+import JourneyPage from './components/JourneyPage';
 
 function App() {
   const [session, setSession] = useState(null);
@@ -63,6 +64,7 @@ function App() {
             <Route path="/tournaments" element={<TournamentsPage />} />
             <Route path="/register-tournament" element={<AddTournament />} />
             <Route path="/stats" element={<Stats />} />
+            <Route path="/journeys" element={<JourneyPage />} />
           </Routes>
         </main>
         
