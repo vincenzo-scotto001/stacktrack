@@ -337,6 +337,7 @@ footer {
 }
 
 .cancel-btn {
+  margin-top: 1.5rem;
   background-color: #7f8c8d;
 }
 
@@ -397,6 +398,7 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 
 .cancel-btn {
+  margin-top: 1.5rem;
   background-color: #7f8c8d;
 }
 
@@ -466,10 +468,12 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 
 .add-another-btn {
+  margin-top: 1.5rem;
   background-color: #3498db;
 }
 
 .return-dashboard-btn {
+  margin-top: 1.5rem;
   background-color: #2c3e50;
 }
 
@@ -971,6 +975,7 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 
 .add-btn {
+  margin-top: 1.5rem;
   background-color: #3498db;
 }
 
@@ -1129,4 +1134,69 @@ input[type="number"]::-webkit-inner-spin-button {
 .recharts-default-tooltip {
   background-color: rgba(255, 255, 255, 0.95) !important;
   border: 1px solid #ddd !important;
+}
+
+/* Tournament selection and delete styles */
+.tournaments-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 2rem;
+  justify-content: center;
+}
+
+.select-mode-btn {
+  margin-top: 1.5rem;
+  background-color: #7f8c8d;
+}
+
+.select-mode-btn.active {
+  background-color: #c0392b;
+}
+
+.select-all-btn {
+  margin-top: 1.5rem;
+  width: 130px;
+  background-color: #3498db;
+}
+
+.delete-btn {
+  margin-top: 1.5rem;
+  background-color: #c0392b;
+}
+
+.delete-btn:hover {
+  background-color: #c0392b;
+}
+
+.delete-btn:disabled {
+  background-color: #95a5a6;
+  cursor: not-allowed;
+}
+
+.select-column {
+  width: 60px;
+  text-align: center !important;
+}
+
+.tournament-table .select-column input[type="checkbox"] {
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+}
+
+.selected-row {
+  background-color: rgba(52, 152, 219, 0.1) !important;
+}
+
+.selected-row:hover {
+  background-color: rgba(52, 152, 219, 0.2) !important;
+}
+
+.tournament-table tbody tr.selected-row:nth-child(even) {
+  background-color: rgba(52, 152, 219, 0.15) !important;
+}
+
+.tournament-table tbody tr.selected-row:nth-child(even):hover {
+  background-color: rgba(52, 152, 219, 0.25) !important;
 }
