@@ -192,14 +192,13 @@ function AddTournament() {
         </div>
         
         <div className="form-group">
-          <label htmlFor="place">Place (leave blank if tournament not completed)</label>
+          <label htmlFor="place">Place (Optional)</label>
           <input
             type="number"
             id="place"
             name="place"
             value={formData.place}
             onChange={handleChange}
-            min="1"
           />
         </div>
         
