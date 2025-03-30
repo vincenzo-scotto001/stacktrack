@@ -120,7 +120,7 @@ function AddTournament() {
 
   return (
     <div className="add-tournament">
-      <h2>Register a Tournament</h2>
+      <h2>Add Tournament</h2>
       
       {error && <div className="error">{error}</div>}
       
