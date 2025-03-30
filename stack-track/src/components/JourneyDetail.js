@@ -405,7 +405,6 @@ function JourneyDetail({ journey, onBack }) {
                           type="number"
                           value={tournament.place || ''}
                           onChange={(e) => handleTournamentChange(index, 'place', e.target.value)}
-                          min="1"
                           step="1"
                           placeholder="Place"
                         />
