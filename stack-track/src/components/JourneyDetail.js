@@ -303,7 +303,7 @@ function JourneyDetail({ journey, onBack }) {
           <div className="tournaments-body">
             {(isEditing ? editedTournaments : journey.tournaments).map((tournament, index) => (
               <div className="tournament-row" key={tournament.id}>
-                <div className="tournament-cell">
+                <div className="tournament-cell" data-label="Tournament Name">
                   {isEditing ? (
                     <input
                       type="text"
@@ -315,7 +315,7 @@ function JourneyDetail({ journey, onBack }) {
                     tournament.tournament_name
                   )}
                 </div>
-                <div className="tournament-cell">
+                <div className="tournament-cell" data-label="Date">
                   {isEditing ? (
                     <input
                       type="date"
@@ -329,7 +329,7 @@ function JourneyDetail({ journey, onBack }) {
                     formatDate(tournament.date)
                   )}
                 </div>
-                <div className="tournament-cell">
+                <div className="tournament-cell" data-label="Location">
                   {isEditing ? (
                     <input
                       type="text"
@@ -341,7 +341,7 @@ function JourneyDetail({ journey, onBack }) {
                     tournament.location
                   )}
                 </div>
-                <div className="tournament-cell">
+                <div className="tournament-cell" data-label="Buy_in">
                   {isEditing ? (
                     <input
                       type="number"
@@ -355,7 +355,7 @@ function JourneyDetail({ journey, onBack }) {
                     formatMoney(tournament.buy_in)
                   )}
                 </div>
-                <div className="tournament-cell">
+                <div className="tournament-cell" data-label="Action_sold">
                   {isEditing ? (
                     <input
                       type="number"
@@ -369,7 +369,7 @@ function JourneyDetail({ journey, onBack }) {
                     tournament.action_sold > 0 ? `${tournament.action_sold}%` : 'None'
                   )}
                 </div>
-                <div className="tournament-cell">
+                <div className="tournament-cell" data-label="Notes">
                   {isEditing ? (
                     <input
                       type="text"
@@ -380,7 +380,7 @@ function JourneyDetail({ journey, onBack }) {
                     tournament.notes || '-'
                   )}
                 </div>
-                <div className="tournament-cell">
+                <div className="tournament-cell" data-label="Is_completed">
                   {isEditing ? (
                     <select
                       value={tournament.is_completed ? 'true' : 'false'}
@@ -399,7 +399,7 @@ function JourneyDetail({ journey, onBack }) {
                 {/* Place and Winnings fields appear for completed tournaments */}
                 {(tournament.is_completed || editedTournaments.some(t => t.is_completed)) && (
                   <>
-                    <div className="tournament-cell">
+                    <div className="tournament-cell" data-label="Place">
                       {isEditing && tournament.is_completed ? (
                         <input
                           type="number"
@@ -412,7 +412,7 @@ function JourneyDetail({ journey, onBack }) {
                         tournament.is_completed ? (tournament.place || 'N/A') : '-'
                       )}
                     </div>
-                    <div className="tournament-cell">
+                    <div className="tournament-cell" data-label="Winnings">
                       {isEditing && tournament.is_completed ? (
                         <input
                           type="number"
@@ -430,7 +430,7 @@ function JourneyDetail({ journey, onBack }) {
                 )}
                 
                 {isEditing && (
-                  <div className="tournament-cell">
+                  <div className="tournament-cell" data-label="Saving">
                     <button
                       onClick={() => handleUpdateTournament(tournament.id)}
                       disabled={updatingTournament === tournament.id}

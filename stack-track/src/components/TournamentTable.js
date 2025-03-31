@@ -106,17 +106,31 @@ function TournamentTable({
                     />
                   </td>
                 )}
-                <td>{tournament.tournament_name}</td>
-                <td>{formatDate(tournament.date)}</td>
-                <td>{tournament.location}</td>
-                <td>{formatMoney(tournament.buy_in)}</td>
-                <td>{tournament.action_sold > 0 ? `${tournament.action_sold}%` : 'None'}</td>
-                <td>{tournament.place || 'N/A'}</td>
-                <td>{formatMoney(tournament.winnings || 0)}</td>
-                <td className={profit >= 0 ? 'positive' : 'negative'}>
-                  {formatMoney(profit)}
-                </td>
-              </tr>
+                      <td data-label="Tournament:">
+                        {tournament.tournament_name}
+                      </td>
+                      <td data-label="Date:">
+                        {formatDate(tournament.date)}
+                      </td>
+                      <td data-label="Location:">
+                        {tournament.location}
+                      </td>
+                      <td data-label="Buy-in:">
+                        {formatMoney(tournament.buy_in)}
+                      </td>
+                      <td data-label="Action Sold:">
+                        {tournament.action_sold > 0 ? `${tournament.action_sold}%` : 'None'}
+                      </td>
+                      <td data-label="Place:">
+                        {tournament.place || 'N/A'}
+                      </td>
+                      <td data-label="Winnings:">
+                        {formatMoney(tournament.winnings || 0)}
+                      </td>
+                      <td data-label="Profit:" className={profit >= 0 ? 'positive' : 'negative'}>
+                        {formatMoney(profit)}
+                      </td>
+                    </tr>
             );
           })}
         </tbody>
