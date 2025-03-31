@@ -9,6 +9,7 @@ import AddTournament from './components/AddTournament';
 import Stats from './components/Stats';
 import Home from './components/Home';
 import JourneyPage from './components/JourneyPage';
+import PWAInstallPrompt from './components/PWAInstallPrompt';
 
 function App() {
   const [session, setSession] = useState(null);
@@ -71,6 +72,7 @@ function App() {
         <footer>
           <p>&copy; 2025 StackTrack</p>
         </footer>
+        <PWAInstallPrompt />
       </div>
     </Router>
   );
