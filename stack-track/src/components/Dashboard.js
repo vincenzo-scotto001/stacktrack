@@ -74,7 +74,7 @@ function Dashboard() {
         <button onClick={() => navigate('/register-tournament')}>Add a Tournament</button>
         <button onClick={() => navigate('/tournaments')}>View My Tournaments</button>
         <button onClick={() => navigate('/stats')}>View Stats</button>
-        <button onClick={() => navigate('/journeys')}>Tourney Journeys</button>
+        <button onClick={() => navigate('/journeys')}>Tourney Journey</button>
       </div>
       
       <button onClick={handleSignOut} className="sign-out">

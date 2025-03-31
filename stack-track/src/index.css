@@ -1381,6 +1381,11 @@ button:disabled {
     display: grid;
     grid-template-columns: 1fr;
     gap: 0.5rem;
+    background-color: var(--white);
+    padding: 1.5rem;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
   }
   
   /* Stats page specific */
