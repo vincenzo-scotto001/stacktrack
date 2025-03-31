@@ -74,9 +74,17 @@ function JourneyPage() {
 
   return (
     <div className="journey-page">
-      <h2>Tourney Journeys</h2>
+      <h2>Tourney Journey</h2>
       
       {error && <div className="error">{error}</div>}
+      
+      {!isCreating && journeys.length > 0 && (
+        <div className="journey-actions">
+          <button onClick={() => setIsCreating(true)} className="create-btn">
+            Add New Journey
+          </button>
+        </div>
+      )}
       
       
       {isCreating ? (
