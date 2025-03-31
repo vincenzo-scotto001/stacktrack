@@ -9,8 +9,8 @@ const precacheResources = [
   '/static/js/bundle.js',
   '/static/css/main.chunk.css',
   '/manifest.json',
-  '/logo192.png',
-  '/logo512.png',
+  '/logo192.jpg',
+  '/logo512.jpg',
   '/favicon.ico'
 ];
 
