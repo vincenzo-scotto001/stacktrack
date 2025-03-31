@@ -212,7 +212,7 @@ function CreateJourney({ user, onCancel, onSuccess }) {
             
             {tournaments.map((tournament, index) => (
               <div className="tournament-row" key={index}>
-                <div className="tournament-cell">
+                <div className="tournament-cell" data-label="Tournament Name">
                   <input
                     type="text"
                     value={tournament.tournament_name}
@@ -221,7 +221,7 @@ function CreateJourney({ user, onCancel, onSuccess }) {
                     required
                   />
                 </div>
-                <div className="tournament-cell">
+                <div className="tournament-cell" data-label="Date">
                   <input
                     type="date"
                     value={tournament.date}
@@ -231,7 +231,7 @@ function CreateJourney({ user, onCancel, onSuccess }) {
                     required
                   />
                 </div>
-                <div className="tournament-cell">
+                <div className="tournament-cell" data-label="Location">
                   <input
                     type="text"
                     value={tournament.location}
@@ -240,7 +240,7 @@ function CreateJourney({ user, onCancel, onSuccess }) {
                     required
                   />
                 </div>
-                <div className="tournament-cell">
+                <div className="tournament-cell" data-label="Buy-in ($)">
                   <input
                     type="number"
                     value={tournament.buy_in}
@@ -251,7 +251,7 @@ function CreateJourney({ user, onCancel, onSuccess }) {
                     required
                   />
                 </div>
-                <div className="tournament-cell">
+                <div className="tournament-cell" data-label="Action Sold (%)">
                   <input
                     type="number"
                     value={tournament.action_sold}
@@ -262,7 +262,7 @@ function CreateJourney({ user, onCancel, onSuccess }) {
                     step="any"
                   />
                 </div>
-                <div className="tournament-cell">
+                <div className="tournament-cell" data-label="Notes">
                   <input
                     type="text"
                     value={tournament.notes}
