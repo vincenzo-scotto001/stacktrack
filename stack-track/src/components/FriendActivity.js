@@ -96,7 +96,7 @@ function FriendActivity() {
         ))}
       </div>
       
-      <a href="/friends" className="view-all-activity">View All Activity</a>
+      <a href="/friends" className="view-all-activity">View All Friends</a>
     </div>
   );
 }
