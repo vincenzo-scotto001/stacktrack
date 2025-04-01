@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
+import { createTournamentActivity } from '../services/activityService';
 
 function AddTournament() {
   const navigate = useNavigate();
@@ -59,12 +60,14 @@ function AddTournament() {
         winnings: parseFloat(formData.winnings) || 0
       };
       
-      // Insert tournament data
-      const { error: insertError } = await supabase
-        .from('tournaments')
-        .insert([tournamentData]);
-        
-      if (insertError) throw insertError;
+      // Insert tournament data and return the created record
+      const { data: newTournament, error: insertError } = await supabase
+      .from('tournaments')
+      .insert([tournamentData])
+      .select()
+      .single();
+      
+    if (insertError) throw insertError;
       
       // Show success message
       setSuccess(true);
@@ -77,6 +80,16 @@ function AddTournament() {
         place: '',
         winnings: ''
       });
+      
+      try {
+        // Create an activity for the new tournament
+        if (newTournament && newTournament.id) {
+          await createTournamentActivity(newTournament.id, false); // false because it's not completed yet
+        }
+      } catch (activityError) {
+        console.error('Error creating activity:', activityError);
+        // Don't show this error to the user as the tournament was successfully created
+      }
       
     } catch (err) {
       setError(err.message);

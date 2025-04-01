@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
+import FriendActivity from './FriendActivity';
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -31,8 +32,6 @@ function Dashboard() {
           console.log("Query result:", data, error);
           
         if (error) throw error;
-
-        
         
         setProfile(data);
       } catch (err) {
@@ -57,7 +56,11 @@ function Dashboard() {
   return (
     <div className="dashboard">
       <h2>Welcome to Your Dashboard, {profile.first_name}.</h2>
-
+      
+      {error && <div className="error">{error}</div>}
+      
+      {profile && <FriendActivity />}
+      
       <div className="dashboard-actions">
         <h3>Quick Actions</h3>
         <div className="dashboard-actions-buttons">
@@ -67,21 +70,6 @@ function Dashboard() {
           <button onClick={() => navigate('/journeys')}>Tourney Journeys</button>
         </div>
       </div>
-      
-      {error && <div className="error">{error}</div>}
-      
-      {profile && (
-        <div className="friend-activity">
-          <h3>Friend Activity</h3>
-          <div className="activity-placeholder">
-            <div className="activity-empty-state">
-              <p><strong>No recent activity</strong></p>
-              <p>When your friends play tournaments, their activity will appear here.</p>
-              <button className="primary-btn" onClick={() => navigate('/friends')}>Find Friends</button>
-            </div>
-          </div>
-        </div>
-      )}
       
       <button onClick={handleSignOut} className="sign-out">
         Sign Out

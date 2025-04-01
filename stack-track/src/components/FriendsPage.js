@@ -1,15 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
+import { 
+  getFriends, 
+  getFriendSuggestions, 
+  searchUsers,
+  sendFriendRequest,
+  removeFriend
+} from '../services/friendService';
+import FriendRequests from './FriendRequests';
 
 function FriendsPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [friends, setFriends] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
+  const [searchResults, setSearchResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [actionInProgress, setActionInProgress] = useState(false);
 
   useEffect(() => {
     // Check if user is authenticated
@@ -22,21 +32,82 @@ function FriendsPage() {
       }
       
       setUser(session.user);
-      
-      // Fetch user's friends (to be implemented)
-      setLoading(false);
+      loadData();
     };
     
     checkUser();
   }, [navigate]);
 
-  const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [friendsList, suggestionsList] = await Promise.all([
+        getFriends(),
+        getFriendSuggestions()
+      ]);
+      
+      setFriends(friendsList);
+      setSuggestions(suggestionsList);
+    } catch (err) {
+      console.error('Error loading friends data:', err);
+      setError('Failed to load friends data. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleAddFriend = (userId) => {
-    // To be implemented
-    console.log("Add friend", userId);
+  const handleSearch = async (e) => {
+    setSearchTerm(e.target.value);
+    
+    if (e.target.value.trim().length < 2) {
+      setSearchResults([]);
+      return;
+    }
+    
+    try {
+      const results = await searchUsers(e.target.value);
+      setSearchResults(results);
+    } catch (err) {
+      console.error('Error searching users:', err);
+    }
+  };
+
+  const handleSendRequest = async (userId) => {
+    setActionInProgress(true);
+    try {
+      await sendFriendRequest(userId);
+      // Remove this user from search results and suggestions
+      setSearchResults(prev => prev.filter(user => user.id !== userId));
+      setSuggestions(prev => prev.filter(user => user.id !== userId));
+    } catch (err) {
+      console.error('Error sending friend request:', err);
+      setError(err.message || 'Failed to send friend request');
+    } finally {
+      setActionInProgress(false);
+    }
+  };
+
+  const handleRemoveFriend = async (friendId) => {
+    if (!window.confirm('Are you sure you want to remove this friend?')) {
+      return;
+    }
+    
+    setActionInProgress(true);
+    try {
+      await removeFriend(friendId);
+      // Remove from friends list
+      setFriends(prev => prev.filter(friend => friend.id !== friendId));
+    } catch (err) {
+      console.error('Error removing friend:', err);
+      setError('Failed to remove friend');
+    } finally {
+      setActionInProgress(false);
+    }
+  };
+
+  const handleRequestUpdate = () => {
+    // Refresh data when a request is handled
+    loadData();
   };
 
   if (loading) {
@@ -49,6 +120,8 @@ function FriendsPage() {
       
       {error && <div className="error">{error}</div>}
 
+      <FriendRequests onRequestUpdate={handleRequestUpdate} />
+
       <div className="friends-search">
         <input 
           type="text" 
@@ -57,11 +130,41 @@ function FriendsPage() {
           onChange={handleSearch}
           className="search-input"
         />
+        
+        {searchTerm.trim().length > 0 && (
+          <div className="search-results">
+            {searchResults.length > 0 ? (
+              <div className="suggestion-items search-suggestions">
+                {searchResults.map(user => (
+                  <div className="suggestion-item" key={user.id}>
+                    <div className="friend-avatar">
+                      {user.first_name.charAt(0)}{user.last_name.charAt(0)}
+                    </div>
+                    <div className="friend-info">
+                      <p className="friend-name">{user.first_name} {user.last_name}</p>
+                    </div>
+                    <button 
+                      className="add-friend-btn"
+                      onClick={() => handleSendRequest(user.id)}
+                      disabled={actionInProgress}
+                    >
+                      Add Friend
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="no-results">
+                <p>No users found matching "{searchTerm}"</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
       
       <div className="friends-container">
         <div className="friends-list">
-          <h3>Your Friends</h3>
+          <h3>Your Friends ({friends.length})</h3>
           
           {friends.length > 0 ? (
             <div className="friend-items">
@@ -72,12 +175,23 @@ function FriendsPage() {
                   </div>
                   <div className="friend-info">
                     <p className="friend-name">{friend.first_name} {friend.last_name}</p>
-                    <p className="friend-stats">
-                      <span>{friend.tournament_count || 0} tournaments</span>
-                      <span>{friend.roi || 0}% ROI</span>
-                    </p>
+                    <p className="friend-email">{friend.email}</p>
                   </div>
-                  <button className="view-profile-btn">View Profile</button>
+                  <div className="friend-actions">
+                    <button 
+                      className="view-stats-btn"
+                      onClick={() => navigate(`/profile/${friend.id}`)}
+                    >
+                      View Stats
+                    </button>
+                    <button 
+                      className="remove-friend-btn"
+                      onClick={() => handleRemoveFriend(friend.id)}
+                      disabled={actionInProgress}
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -101,13 +215,11 @@ function FriendsPage() {
                   </div>
                   <div className="friend-info">
                     <p className="friend-name">{suggestion.first_name} {suggestion.last_name}</p>
-                    <p className="friend-stats">
-                      <span>{suggestion.tournament_count || 0} tournaments</span>
-                    </p>
                   </div>
                   <button 
                     className="add-friend-btn"
-                    onClick={() => handleAddFriend(suggestion.id)}
+                    onClick={() => handleSendRequest(suggestion.id)}
+                    disabled={actionInProgress}
                   >
                     Add Friend
                   </button>
