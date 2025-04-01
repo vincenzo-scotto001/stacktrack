@@ -29,7 +29,6 @@ function Dashboard() {
           .select('*')
           .eq('id', session.user.id)
           .single();
-          console.log("Query result:", data, error);
           
         if (error) throw error;
         
@@ -59,8 +58,6 @@ function Dashboard() {
       
       {error && <div className="error">{error}</div>}
       
-      {profile && <FriendActivity />}
-      
       <div className="dashboard-actions">
         <h3>Quick Actions</h3>
         <div className="dashboard-actions-buttons">
@@ -70,6 +67,8 @@ function Dashboard() {
           <button onClick={() => navigate('/journeys')}>Tourney Journeys</button>
         </div>
       </div>
+
+      {profile && <FriendActivity />}
       
       <button onClick={handleSignOut} className="sign-out">
         Sign Out

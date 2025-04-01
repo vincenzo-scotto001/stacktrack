@@ -175,7 +175,6 @@ function FriendsPage() {
                   </div>
                   <div className="friend-info">
                     <p className="friend-name">{friend.first_name} {friend.last_name}</p>
-                    <p className="friend-email">{friend.email}</p>
                   </div>
                   <div className="friend-actions">
                     <button 
