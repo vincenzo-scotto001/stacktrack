@@ -57,25 +57,31 @@ function Dashboard() {
   return (
     <div className="dashboard">
       <h2>Welcome to Your Dashboard, {profile.first_name}.</h2>
+
+      <div className="dashboard-actions">
+        <h3>Quick Actions</h3>
+        <div className="dashboard-actions-buttons">
+          <button onClick={() => navigate('/register-tournament')}>Add a Tournament</button>
+          <button onClick={() => navigate('/tournaments')}>View My Tournaments</button>
+          <button onClick={() => navigate('/stats')}>View Stats</button>
+          <button onClick={() => navigate('/journeys')}>Tourney Journeys</button>
+        </div>
+      </div>
       
       {error && <div className="error">{error}</div>}
       
       {profile && (
-        <div className="profile-info">
-          <h3>Your Profile</h3>
-          <p><strong>Name:</strong> {profile.first_name} {profile.last_name}</p>
-          <p><strong>Email:</strong> {profile.email}</p>
-          <p><strong>Phone:</strong> {profile.phone}</p>
+        <div className="friend-activity">
+          <h3>Friend Activity</h3>
+          <div className="activity-placeholder">
+            <div className="activity-empty-state">
+              <p><strong>No recent activity</strong></p>
+              <p>When your friends play tournaments, their activity will appear here.</p>
+              <button className="primary-btn" onClick={() => navigate('/friends')}>Find Friends</button>
+            </div>
+          </div>
         </div>
       )}
-      
-      <div className="dashboard-actions">
-        <h3>Quick Actions</h3>
-        <button onClick={() => navigate('/register-tournament')}>Add a Tournament</button>
-        <button onClick={() => navigate('/tournaments')}>View My Tournaments</button>
-        <button onClick={() => navigate('/stats')}>View Stats</button>
-        <button onClick={() => navigate('/journeys')}>Tourney Journey</button>
-      </div>
       
       <button onClick={handleSignOut} className="sign-out">
         Sign Out

@@ -9,6 +9,7 @@ import AddTournament from './components/AddTournament';
 import Stats from './components/Stats';
 import Home from './components/Home';
 import JourneyPage from './components/JourneyPage';
+import FriendsPage from './components/FriendsPage';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 
 function App() {
@@ -66,6 +67,7 @@ function App() {
             <Route path="/register-tournament" element={<AddTournament />} />
             <Route path="/stats" element={<Stats />} />
             <Route path="/journeys" element={<JourneyPage />} />
+            <Route path="/friends" element={<FriendsPage />} />
           </Routes>
         </main>
         
