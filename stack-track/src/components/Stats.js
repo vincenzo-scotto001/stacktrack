@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 
 function Stats() {
   const navigate = useNavigate();
@@ -31,13 +31,19 @@ function Stats() {
     profitability: 0
   });
   
-  // Chart data
-  const [monthlyProfitData, setMonthlyProfitData] = useState([]);
-  const [runningROIData, setRunningROIData] = useState([]);
-  const [varianceData, setVarianceData] = useState([]);
-  
-  // Active chart tab
-  const [activeTab, setActiveTab] = useState('profit');
+// Chart data
+const [monthlyProfitData, setMonthlyProfitData] = useState([]);
+const [runningROIData, setRunningROIData] = useState([]);
+const [varianceData, setVarianceData] = useState([]);
+const [timeSeriesData, setTimeSeriesData] = useState({
+  weekly: [],
+  monthly: [],
+  yearly: []
+});
+
+// Active chart tab and time period
+const [activeTab, setActiveTab] = useState('profit');
+const [selectedTimePeriod, setSelectedTimePeriod] = useState('monthly');
 
   useEffect(() => {
     // Check if user is authenticated
@@ -146,9 +152,41 @@ function Stats() {
       profitability: parseFloat(profitability.toFixed(2))
     });
 
-    // Chart Data Preparation
+// Chart Data Preparation
     
-    // 1. Monthly Profit Chart
+    // 1. Weekly Profit Chart
+    const tournamentsByWeek = {};
+    tournamentsWithProfit.forEach(tournament => {
+      const date = new Date(tournament.date);
+      
+      // Get the week number and year
+      const startOfYear = new Date(date.getFullYear(), 0, 1);
+      const days = Math.floor((date - startOfYear) / (24 * 60 * 60 * 1000));
+      const weekNumber = Math.ceil(days / 7);
+      
+      const weekKey = `${date.getFullYear()}-W${String(weekNumber).padStart(2, '0')}`;
+      const weekStartDate = new Date(date);
+      weekStartDate.setDate(date.getDate() - date.getDay());
+      const weekEndDate = new Date(weekStartDate);
+      weekEndDate.setDate(weekStartDate.getDate() + 6);
+      
+      const weekName = `Week ${weekNumber}, ${date.getFullYear()}`;
+      
+      if (!tournamentsByWeek[weekKey]) {
+        tournamentsByWeek[weekKey] = {
+          key: weekKey,
+          period: weekName,
+          profit: 0,
+          tournaments: [],
+          date: new Date(weekStartDate) // Store the date for sorting
+        };
+      }
+      
+      tournamentsByWeek[weekKey].profit += tournament.profit;
+      tournamentsByWeek[weekKey].tournaments.push(tournament);
+    });
+    
+    // 2. Monthly Profit Chart
     const tournamentsByMonth = {};
     tournamentsWithProfit.forEach(tournament => {
       const date = new Date(tournament.date);
@@ -158,9 +196,10 @@ function Stats() {
       if (!tournamentsByMonth[monthKey]) {
         tournamentsByMonth[monthKey] = {
           key: monthKey,
-          month: monthName,
+          period: monthName,
           profit: 0,
-          tournaments: []
+          tournaments: [],
+          date: new Date(date.getFullYear(), date.getMonth(), 1) // Store the date for sorting
         };
       }
       
@@ -168,12 +207,50 @@ function Stats() {
       tournamentsByMonth[monthKey].tournaments.push(tournament);
     });
     
-    const monthlyData = Object.values(tournamentsByMonth).map(month => ({
-      month: month.month,
-      profit: parseFloat(month.profit.toFixed(2))
-    }));
+    // 3. Yearly Profit Chart
+    const tournamentsByYear = {};
+    tournamentsWithProfit.forEach(tournament => {
+      const date = new Date(tournament.date);
+      const yearKey = `${date.getFullYear()}`;
+      const yearName = `${date.getFullYear()}`;
+      
+      if (!tournamentsByYear[yearKey]) {
+        tournamentsByYear[yearKey] = {
+          key: yearKey,
+          period: yearName,
+          profit: 0,
+          tournaments: [],
+          date: new Date(date.getFullYear(), 0, 1) // Store the date for sorting
+        };
+      }
+      
+      tournamentsByYear[yearKey].profit += tournament.profit;
+      tournamentsByYear[yearKey].tournaments.push(tournament);
+    });
+    
+    // Format and sort the data for each time period
+    const formatTimeSeriesData = (data) => {
+      return Object.values(data)
+        .map(item => ({
+          period: item.period,
+          profit: parseFloat(item.profit.toFixed(2)),
+          tournamentCount: item.tournaments.length
+        }))
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+    };
+    
+    const weeklyData = formatTimeSeriesData(tournamentsByWeek);
+    const monthlyData = formatTimeSeriesData(tournamentsByMonth);
+    const yearlyData = formatTimeSeriesData(tournamentsByYear);
     
     setMonthlyProfitData(monthlyData);
+    
+    // Store all time period data
+    setTimeSeriesData({
+      weekly: weeklyData,
+      monthly: monthlyData, 
+      yearly: yearlyData
+    });
     
     // 2. Running ROI Chart
     const runningStats = tournamentsWithProfit.map((tournament, index) => {
@@ -336,7 +413,7 @@ function Stats() {
                   className={`tab-btn ${activeTab === 'profit' ? 'active' : ''}`}
                   onClick={() => setActiveTab('profit')}
                 >
-                  Monthly Profit
+                  Profit/Loss Graph
                 </button>
                 <button 
                   className={`tab-btn ${activeTab === 'roi' ? 'active' : ''}`}
@@ -353,28 +430,80 @@ function Stats() {
               </div>
               
               <div className="chart-container">
-                {activeTab === 'profit' && (
+              {activeTab === 'profit' && (
                   <>
-                    <h4>Monthly Profit</h4>
+                    <div className="chart-time-period-selector">
+                      <h4>Profit Over Time</h4>
+                      <div className="time-period-tabs">
+                        <button 
+                          className={`time-period-btn ${selectedTimePeriod === 'weekly' ? 'active' : ''}`}
+                          onClick={() => setSelectedTimePeriod('weekly')}
+                        >
+                          Weekly
+                        </button>
+                        <button 
+                          className={`time-period-btn ${selectedTimePeriod === 'monthly' ? 'active' : ''}`}
+                          onClick={() => setSelectedTimePeriod('monthly')}
+                        >
+                          Monthly
+                        </button>
+                        <button 
+                          className={`time-period-btn ${selectedTimePeriod === 'yearly' ? 'active' : ''}`}
+                          onClick={() => setSelectedTimePeriod('yearly')}
+                        >
+                          Yearly
+                        </button>
+                      </div>
+                    </div>
+                    
                     <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={monthlyProfitData}>
+                      <LineChart data={timeSeriesData[selectedTimePeriod]}>
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="month" />
+                        <XAxis dataKey="period" />
                         <YAxis />
-                        <Tooltip formatter={(value) => [`${formatMoney(value)}`, 'Profit/Loss']} />
+                        <Tooltip 
+                          formatter={(value, name) => {
+                            if (name === 'profit') {
+                              return [formatMoney(value), 'Profit/Loss'];
+                            }
+                            return [value, name];
+                          }}
+                          labelFormatter={(label, payload) => {
+                            if (payload && payload.length > 0) {
+                              return `${label} (${payload[0]?.payload.tournamentCount || 0} tournaments)`;
+                            }
+                            return label;
+                          }}
+                        />
                         <Legend />
-                        <Bar 
+                        <ReferenceLine y={0} stroke="#666" strokeDasharray="3 3" />
+                        <Line 
+                          type="monotone"
                           dataKey="profit" 
                           name="Profit/Loss" 
-                          fill="#3498db" 
-                          stroke="#2980b9"
-                          fillOpacity={0.8}
+                          stroke={basicStats.profit >= 0 ? "#27ae60" : "#e74c3c"}
+                          strokeWidth={2}
+                          dot={{ 
+                            fill: basicStats.profit >= 0 ? "#27ae60" : "#e74c3c", 
+                            r: 5,
+                            strokeWidth: 1,
+                            stroke: basicStats.profit >= 0 ? "#219955" : "#c0392b"
+                          }}
+                          activeDot={{ r: 8 }}
                         />
-                      </BarChart>
+                      </LineChart>
                     </ResponsiveContainer>
+                    
+                    <p className="chart-info">
+                      {selectedTimePeriod === 'weekly' && 'Weekly profit/loss over time.'}
+                      {selectedTimePeriod === 'monthly' && 'Monthly profit/loss over time.'}
+                      {selectedTimePeriod === 'yearly' && 'Yearly profit/loss over time.'}
+                      {' '}{basicStats.profit >= 0 ? 
+                        "You're currently showing an overall profit." : 
+                        "You're currently showing an overall loss."}
+                    </p>
                   </>
-                )}
-                
+                )}                
                 {activeTab === 'roi' && (
                   <>
                     <h4>Running ROI Over Time</h4>

@@ -1689,3 +1689,60 @@ button:disabled {
     gap: 0.5rem;
   }
 }
+
+/* Time period selector styles - add to your index.css */
+
+.chart-time-period-selector {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.chart-time-period-selector h4 {
+  margin: 0;
+  margin-bottom: 0.5rem;
+}
+
+.time-period-tabs {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.time-period-btn {
+  background-color: #f5f5f5;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.time-period-btn:hover {
+  background-color: #e9ecef;
+}
+
+.time-period-btn.active {
+  background-color: var(--primary-color);
+  color: var(--white);
+  border-color: var(--primary-dark);
+}
+
+@media (max-width: 767px) {
+  .chart-time-period-selector {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .time-period-tabs {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+  
+  .time-period-btn {
+    flex: 1;
+    text-align: center;
+  }
+}
