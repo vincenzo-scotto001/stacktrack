@@ -125,7 +125,7 @@ function FriendsPage() {
       <div className="friends-search">
         <input 
           type="text" 
-          placeholder="Search for players..." 
+          placeholder=" Search for players..." 
           value={searchTerm}
           onChange={handleSearch}
           className="search-input"
