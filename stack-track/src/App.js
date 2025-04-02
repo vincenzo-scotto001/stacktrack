@@ -10,6 +10,7 @@ import Stats from './components/Stats';
 import Home from './components/Home';
 import JourneyPage from './components/JourneyPage';
 import FriendsPage from './components/FriendsPage';
+import FriendStacks from './components/FriendStacks';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 
 function App() {
@@ -68,6 +69,7 @@ function App() {
             <Route path="/stats" element={<Stats />} />
             <Route path="/journeys" element={<JourneyPage />} />
             <Route path="/friends" element={<FriendsPage />} />
+            <Route path="/friend-stacks/:friendId" element={<FriendStacks />} />
           </Routes>
         </main>
         

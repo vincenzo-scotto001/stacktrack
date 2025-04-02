@@ -178,10 +178,10 @@ function FriendsPage() {
                   </div>
                   <div className="friend-actions">
                     <button 
-                      className="view-stats-btn"
-                      onClick={() => navigate(`/profile/${friend.id}`)}
+                      className="view-stacks-btn"
+                      onClick={() => navigate(`/friend-stacks/${friend.id}`)}
                     >
-                      View Stats
+                      View Stacks
                     </button>
                     <button 
                       className="remove-friend-btn"
