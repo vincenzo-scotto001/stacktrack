@@ -86,12 +86,6 @@ function FriendActivity() {
                 {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
               </p>
             </div>
-            {activity.result && (
-              <div className={`activity-result ${activity.result.isPositive ? 'positive' : 'negative'}`}>
-                {formatMoney(activity.result.value)}
-                {activity.result.place && <span className="place">{activity.result.place}{getOrdinalSuffix(activity.result.place)}</span>}
-              </div>
-            )}
           </div>
         ))}
       </div>
@@ -99,22 +93,6 @@ function FriendActivity() {
       <a href="/friends" className="view-all-activity">View All Friends</a>
     </div>
   );
-}
-
-// Helper function to get ordinal suffix for numbers
-function getOrdinalSuffix(i) {
-  const j = i % 10;
-  const k = i % 100;
-  if (j === 1 && k !== 11) {
-    return 'st';
-  }
-  if (j === 2 && k !== 12) {
-    return 'nd';
-  }
-  if (j === 3 && k !== 13) {
-    return 'rd';
-  }
-  return 'th';
 }
 
 export default FriendActivity;
