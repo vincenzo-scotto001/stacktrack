@@ -20,17 +20,37 @@ function FriendStacks() {
 
   const loadFriendData = async () => {
     try {
+      // First verify this is actually a friend
+      const userId = (await supabase.auth.getUser()).data.user?.id;
+      const { data: friendship, error: friendshipError } = await supabase
+        .from('friendships')
+        .select('id')
+        .or(`and(user_id.eq.${userId},friend_id.eq.${friendId}),and(user_id.eq.${friendId},friend_id.eq.${userId})`)
+        .eq('status', 'accepted')
+        .maybeSingle();
+        
+      if (friendshipError) throw friendshipError;
+      
+      // If not a friend, don't allow access
+      if (!friendship) {
+        setError('You can only view tournament data of your friends');
+        setLoading(false);
+        return;
+      }
+      
+      // Only proceed to load data if friendship is verified
       const { data, error } = await supabase
         .from('stacktrackmaster')
         .select('id, first_name, last_name, email')
         .eq('id', friendId)
         .single();
-
+  
       if (error) throw error;
       setFriendInfo(data);
     } catch (err) {
       console.error('Error loading friend data:', err);
       setError('Could not load friend information');
+      setLoading(false);
     }
   };
 
@@ -52,16 +72,7 @@ function FriendStacks() {
       setLoading(false);
     }
   };
-
-  const formatMoney = (amount) => {
-    return new Intl.NumberFormat('en-US', { 
-      style: 'currency', 
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0 
-    }).format(amount);
-  };
-
+  
   const formatDate = (dateString) => {
     return format(new Date(dateString), 'MMM d, yyyy');
   };
