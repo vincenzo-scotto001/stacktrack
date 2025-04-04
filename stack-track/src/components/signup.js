@@ -120,7 +120,6 @@ function SignUp() {
             name="phone"
             value={formData.phone}
             onChange={handleChange}
-            required
           />
         </div>
         
