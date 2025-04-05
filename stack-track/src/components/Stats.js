@@ -45,6 +45,12 @@ const [timeSeriesData, setTimeSeriesData] = useState({
 const [activeTab, setActiveTab] = useState('profit');
 const [selectedTimePeriod, setSelectedTimePeriod] = useState('monthly');
 
+// Custom date range states
+const [showDatePopup, setShowDatePopup] = useState(false);
+const [customDateRange, setCustomDateRange] = useState({ from: '', to: '' });
+const [isCustomPeriod, setIsCustomPeriod] = useState(false);
+const [dateFilterSummary, setDateFilterSummary] = useState('');
+
   useEffect(() => {
     // Check if user is authenticated
     const checkUser = async () => {
@@ -73,6 +79,18 @@ const [selectedTimePeriod, setSelectedTimePeriod] = useState('monthly');
         if (tournamentsData.length > 0) {
           // Calculate all stats
           calculateStats(tournamentsData);
+          
+          // Initialize custom date range with earliest and latest dates
+          if (tournamentsData.length > 0) {
+            const dates = tournamentsData.map(t => new Date(t.date));
+            const minDate = new Date(Math.min(...dates));
+            const maxDate = new Date(Math.max(...dates));
+            
+            setCustomDateRange({
+              from: minDate.toISOString().split('T')[0],
+              to: maxDate.toISOString().split('T')[0]
+            });
+          }
         }
       } catch (err) {
         console.error('Error fetching tournaments:', err);
@@ -84,6 +102,114 @@ const [selectedTimePeriod, setSelectedTimePeriod] = useState('monthly');
     
     checkUser();
   }, [navigate]);
+
+  // Functions for custom date range
+  const handleCustomDateClick = () => {
+    // Initialize date range if empty
+    if (!customDateRange.from || !customDateRange.to) {
+      // Set default to last 3 months if we have tournaments
+      if (tournaments.length > 0) {
+        const dates = tournaments.map(t => new Date(t.date));
+        const maxDate = new Date(Math.max(...dates));
+        
+        const minDate = new Date(maxDate);
+        minDate.setMonth(minDate.getMonth() - 3); // Default to 3 months back
+        
+        setCustomDateRange({
+          from: minDate.toISOString().split('T')[0],
+          to: maxDate.toISOString().split('T')[0]
+        });
+      }
+    }
+    
+    setShowDatePopup(true);
+  };
+
+  // Handle date range changes
+  const handleDateChange = (field, value) => {
+    setCustomDateRange({
+      ...customDateRange,
+      [field]: value
+    });
+  };
+
+  // Apply the custom date filter
+  const applyCustomDateFilter = () => {
+    if (!customDateRange.from || !customDateRange.to) {
+      alert('Please select both start and end dates');
+      return;
+    }
+    
+    const startDate = new Date(customDateRange.from);
+    const endDate = new Date(customDateRange.to);
+    
+    if (startDate > endDate) {
+      alert('Start date cannot be after end date');
+      return;
+    }
+    
+    // Filter tournaments based on date range
+    const filteredTournaments = tournaments.filter(tournament => {
+      const tournamentDate = new Date(tournament.date);
+      return tournamentDate >= startDate && tournamentDate <= endDate;
+    });
+    
+    if (filteredTournaments.length === 0) {
+      alert('No tournaments found in the selected date range');
+      return;
+    }
+    
+    // Create summary text
+    const startFormatted = startDate.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+    
+    const endFormatted = endDate.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+    
+    setDateFilterSummary(`Showing ${filteredTournaments.length} tournaments between ${startFormatted} and ${endFormatted}`);
+    
+    // Recalculate stats with filtered tournaments
+    calculateStats(filteredTournaments);
+    
+    // Update UI
+    setIsCustomPeriod(true);
+    setSelectedTimePeriod('custom');
+    setShowDatePopup(false);
+  };
+
+  // Cancel the date popup
+  const cancelDatePopup = () => {
+    setShowDatePopup(false);
+  };
+
+  // Reset the date filter
+  const resetDateFilter = () => {
+    setIsCustomPeriod(false);
+    setDateFilterSummary('');
+    calculateStats(tournaments);
+    setSelectedTimePeriod('monthly');
+  };
+
+  // Handle time period selection
+  const handleTimePeriodChange = (period) => {
+    if (period === 'custom') {
+      handleCustomDateClick();
+      return;
+    }
+    
+    // Reset custom period flag if selecting a standard period
+    if (isCustomPeriod) {
+      resetDateFilter();
+    }
+    
+    setSelectedTimePeriod(period);
+  };
 
   const calculateStats = (tournamentsData) => {
     // Calculate profit for each tournament
@@ -234,7 +360,8 @@ const [selectedTimePeriod, setSelectedTimePeriod] = useState('monthly');
         .map(item => ({
           period: item.period,
           profit: parseFloat(item.profit.toFixed(2)),
-          tournamentCount: item.tournaments.length
+          tournamentCount: item.tournaments.length,
+          isFiltered: isCustomPeriod
         }))
         .sort((a, b) => new Date(a.date) - new Date(b.date));
     };
@@ -249,7 +376,8 @@ const [selectedTimePeriod, setSelectedTimePeriod] = useState('monthly');
     setTimeSeriesData({
       weekly: weeklyData,
       monthly: monthlyData, 
-      yearly: yearlyData
+      yearly: yearlyData,
+      custom: isCustomPeriod ? monthlyData : [] // Use monthly format for custom view
     });
     
     // 2. Running ROI Chart
@@ -266,7 +394,8 @@ const [selectedTimePeriod, setSelectedTimePeriod] = useState('monthly');
       return {
         date: new Date(tournament.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
         roi: parseFloat(runningROI.toFixed(2)),
-        tournaments: tournamentsToDate.length
+        tournaments: tournamentsToDate.length,
+        isFiltered: isCustomPeriod
       };
     });
     
@@ -279,7 +408,8 @@ const [selectedTimePeriod, setSelectedTimePeriod] = useState('monthly');
         return {
           date: new Date(tournament.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
           stdDev: 0,
-          tournaments: 1
+          tournaments: 1,
+          isFiltered: isCustomPeriod
         };
       }
       
@@ -293,7 +423,8 @@ const [selectedTimePeriod, setSelectedTimePeriod] = useState('monthly');
       return {
         date: new Date(tournament.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
         stdDev: parseFloat(stdDev.toFixed(2)),
-        tournaments: tournamentsToDate.length
+        tournaments: tournamentsToDate.length,
+        isFiltered: isCustomPeriod
       };
     });
     
@@ -332,7 +463,7 @@ const [selectedTimePeriod, setSelectedTimePeriod] = useState('monthly');
           <div className="stats-container">
             {/* Basic Stats Cards */}
             <div className="stats-summary">
-              <div className="stat-card">
+              <div className={`stat-card ${isCustomPeriod ? 'filtered' : ''}`}>
                 <h3>Overall Results</h3>
                 <div className="stat-row">
                   <div className="stat-label">Total Tournaments</div>
@@ -360,7 +491,7 @@ const [selectedTimePeriod, setSelectedTimePeriod] = useState('monthly');
                 </div>
               </div>
 
-              <div className="stat-card">
+              <div className={`stat-card ${isCustomPeriod ? 'filtered' : ''}`}>
                 <h3>Performance Metrics</h3>
                 <div className="stat-row">
                   <div className="stat-label">In The Money</div>
@@ -381,7 +512,7 @@ const [selectedTimePeriod, setSelectedTimePeriod] = useState('monthly');
               </div>
               
               {/* Advanced Stats Card */}
-              <div className="stat-card">
+              <div className={`stat-card ${isCustomPeriod ? 'filtered' : ''}`}>
                 <h3>Advanced Analytics</h3>
                 <div className="stat-row">
                   <div className="stat-label">Standard Deviation</div>
@@ -432,29 +563,55 @@ const [selectedTimePeriod, setSelectedTimePeriod] = useState('monthly');
               <div className="chart-container">
               {activeTab === 'profit' && (
                   <>
-                    <div className="chart-time-period-selector">
-                      <h4>Profit Over Time</h4>
+                    <div className={`chart-time-period-selector ${isCustomPeriod ? 'filtered' : ''}`}>
+                      <h4>
+                        Profit Over Time
+                        {isCustomPeriod && (
+                          <span className="custom-range-indicator">
+                            {dateFilterSummary}
+                          </span>
+                        )}
+                      </h4>
                       <div className="time-period-tabs">
                         <button 
+                          className={`time-period-btn ${selectedTimePeriod === 'custom' ? 'active' : ''}`}
+                          onClick={() => handleTimePeriodChange('custom')}
+                        >
+                          Custom
+                        </button>
+                        <button 
                           className={`time-period-btn ${selectedTimePeriod === 'weekly' ? 'active' : ''}`}
-                          onClick={() => setSelectedTimePeriod('weekly')}
+                          onClick={() => handleTimePeriodChange('weekly')}
                         >
                           Weekly
                         </button>
                         <button 
                           className={`time-period-btn ${selectedTimePeriod === 'monthly' ? 'active' : ''}`}
-                          onClick={() => setSelectedTimePeriod('monthly')}
+                          onClick={() => handleTimePeriodChange('monthly')}
                         >
                           Monthly
                         </button>
                         <button 
                           className={`time-period-btn ${selectedTimePeriod === 'yearly' ? 'active' : ''}`}
-                          onClick={() => setSelectedTimePeriod('yearly')}
+                          onClick={() => handleTimePeriodChange('yearly')}
                         >
                           Yearly
                         </button>
                       </div>
                     </div>
+                    
+                    {isCustomPeriod && (
+                      <div className="filtered-data-banner">
+                        <div className="filter-badge">Filtered Data</div>
+                        <p>{dateFilterSummary}</p>
+                        <button 
+                          onClick={resetDateFilter}
+                          className="small-btn reset-btn"
+                        >
+                          Clear Filter
+                        </button>
+                      </div>
+                    )}
                     
                     <ResponsiveContainer width="100%" height={300}>
                       <LineChart data={timeSeriesData[selectedTimePeriod]}>
@@ -470,7 +627,11 @@ const [selectedTimePeriod, setSelectedTimePeriod] = useState('monthly');
                           }}
                           labelFormatter={(label, payload) => {
                             if (payload && payload.length > 0) {
-                              return `${label} (${payload[0]?.payload.tournamentCount || 0} tournaments)`;
+                              let labelText = `${label} (${payload[0]?.payload.tournamentCount || 0} tournaments)`;
+                              if (payload[0]?.payload.isFiltered) {
+                                labelText += ' [Filtered]';
+                              }
+                              return labelText;
                             }
                             return label;
                           }}
@@ -498,6 +659,7 @@ const [selectedTimePeriod, setSelectedTimePeriod] = useState('monthly');
                       {selectedTimePeriod === 'weekly' && 'Weekly profit/loss over time.'}
                       {selectedTimePeriod === 'monthly' && 'Monthly profit/loss over time.'}
                       {selectedTimePeriod === 'yearly' && 'Yearly profit/loss over time.'}
+                      {selectedTimePeriod === 'custom' && 'Filtered profit/loss over selected date range.'}
                       {' '}{basicStats.profit >= 0 ? 
                         "You're currently showing an overall profit." : 
                         "You're currently showing an overall loss."}
@@ -506,7 +668,28 @@ const [selectedTimePeriod, setSelectedTimePeriod] = useState('monthly');
                 )}                
                 {activeTab === 'roi' && (
                   <>
-                    <h4>Running ROI Over Time</h4>
+                    <h4>
+                      Running ROI Over Time
+                      {isCustomPeriod && (
+                        <span className="custom-range-indicator">
+                          {dateFilterSummary}
+                        </span>
+                      )}
+                    </h4>
+                    
+                    {isCustomPeriod && (
+                      <div className="filtered-data-banner">
+                        <div className="filter-badge">Filtered Data</div>
+                        <p>{dateFilterSummary}</p>
+                        <button 
+                          onClick={resetDateFilter}
+                          className="small-btn reset-btn"
+                        >
+                          Clear Filter
+                        </button>
+                      </div>
+                    )}
+                    
                     <ResponsiveContainer width="100%" height={300}>
                       <LineChart data={runningROIData}>
                         <CartesianGrid strokeDasharray="3 3" />
@@ -532,7 +715,28 @@ const [selectedTimePeriod, setSelectedTimePeriod] = useState('monthly');
                 
                 {activeTab === 'variance' && (
                   <>
-                    <h4>Variance (Standard Deviation) Over Time</h4>
+                    <h4>
+                      Variance (Standard Deviation) Over Time
+                      {isCustomPeriod && (
+                        <span className="custom-range-indicator">
+                          {dateFilterSummary}
+                        </span>
+                      )}
+                    </h4>
+                    
+                    {isCustomPeriod && (
+                      <div className="filtered-data-banner">
+                        <div className="filter-badge">Filtered Data</div>
+                        <p>{dateFilterSummary}</p>
+                        <button 
+                          onClick={resetDateFilter}
+                          className="small-btn reset-btn"
+                        >
+                          Clear Filter
+                        </button>
+                      </div>
+                    )}
+                    
                     <ResponsiveContainer width="100%" height={300}>
                       <LineChart data={varianceData}>
                         <CartesianGrid strokeDasharray="3 3" />
@@ -587,6 +791,42 @@ const [selectedTimePeriod, setSelectedTimePeriod] = useState('monthly');
           Back to Dashboard
         </button>
       </div>
+      
+      {/* Date Range Popup */}
+      {showDatePopup && (
+        <div className="date-popup-overlay">
+          <div className="date-popup">
+            <div className="date-popup-header">
+              <h3>Select Custom Date Range</h3>
+              <button className="close-btn" onClick={cancelDatePopup}>×</button>
+            </div>
+            <div className="date-popup-content">
+              <div className="date-field">
+                <label htmlFor="date-from">From:</label>
+                <input 
+                  type="date" 
+                  id="date-from"
+                  value={customDateRange.from}
+                  onChange={(e) => handleDateChange('from', e.target.value)}
+                />
+              </div>
+              <div className="date-field">
+                <label htmlFor="date-to">To:</label>
+                <input 
+                  type="date" 
+                  id="date-to"
+                  value={customDateRange.to}
+                  onChange={(e) => handleDateChange('to', e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="date-popup-actions">
+              <button className="cancel-btn" onClick={cancelDatePopup}>Cancel</button>
+              <button className="apply-btn" onClick={applyCustomDateFilter}>Apply</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
