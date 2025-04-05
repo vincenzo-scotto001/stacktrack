@@ -88,7 +88,7 @@ function Home() {
           </div>
           <div className="faq-item">
             <h3>Can I track cash games too?</h3>
-            <p>Currently, StackTrack is focused on tournament play. Cash game tracking is on our roadmap for future updates.</p>
+            <p>Currently, StackTrack is focused on tournament play. However the "Add Tournament" feature works for cash games too!</p>
           </div>
         </div>
       </section>
