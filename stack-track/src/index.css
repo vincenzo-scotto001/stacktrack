@@ -2495,3 +2495,265 @@ button:disabled {
     width: 100%;
   }
 }
+
+
+/* Add these styles to your index.css file */
+
+/* Popup overlay */
+.date-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Popup container */
+.date-popup {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  width: 90%;
+  max-width: 500px;
+  overflow: hidden;
+  animation: popup-fade-in 0.3s ease-out;
+}
+
+@keyframes popup-fade-in {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Add these styles to your index.css file */
+
+/* Popup overlay */
+.date-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Popup container */
+.date-popup {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  width: 90%;
+  max-width: 500px;
+  overflow: hidden;
+  animation: popup-fade-in 0.3s ease-out;
+}
+
+@keyframes popup-fade-in {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Popup header */
+.date-popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #eee;
+}
+
+.date-popup-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--secondary-color);
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--text-light);
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-btn:hover {
+  color: var(--danger-color);
+}
+
+/* Popup content */
+.date-popup-content {
+  padding: 1.5rem;
+}
+
+.date-field {
+  margin-bottom: 1.2rem;
+}
+
+.date-field:last-child {
+  margin-bottom: 0;
+}
+
+.date-field label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--secondary-color);
+}
+
+.date-field input[type="date"] {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+/* Popup actions */
+.date-popup-actions {
+  padding: 1rem 1.5rem;
+  background-color: #f8f9fa;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.date-popup-actions button {
+  padding: 0.6rem 1.2rem;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cancel-btn {
+  background-color: var(--neutral-color);
+  color: white;
+  border: none;
+}
+
+.apply-btn {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+}
+
+/* Custom range indicator */
+.custom-range-indicator {
+  font-size: 0.9rem;
+  font-weight: normal;
+  color: var(--primary-color);
+  margin-left: 0.5rem;
+}
+
+/* Make the time period buttons equal width */
+.time-period-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+.time-period-btn {
+  text-align: center;
+}
+
+/* Filtered data elements */
+.filtered-data-banner {
+  background-color: rgba(52, 152, 219, 0.1);
+  border-left: 4px solid var(--primary-color);
+  padding: 0.8rem 1rem;
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.filter-badge {
+  background-color: var(--primary-color);
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+}
+
+.filtered-data-banner p {
+  margin: 0;
+  color: var(--secondary-color);
+  flex: 1;
+}
+
+.filtered-data-banner .small-btn {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+}
+
+/* Add a subtle indication that stats are filtered */
+.stat-card.filtered {
+  border-left: 3px solid var(--primary-color);
+}
+
+.stat-card.filtered h3::after {
+  content: " (Filtered)";
+  font-size: 0.8rem;
+  color: var(--primary-color);
+  font-weight: normal;
+}
+
+/* Time period selector modifications */
+.chart-time-period-selector.filtered h4::after {
+  content: " (Filtered Data)";
+  font-size: 0.85rem;
+  color: var(--primary-color);
+  font-weight: normal;
+  margin-left: 0.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 767px) {
+  .date-popup {
+    width: 95%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  .time-period-tabs {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+  
+  .custom-range-indicator {
+    display: block;
+    margin-left: 0;
+    margin-top: 0.25rem;
+    font-size: 0.8rem;
+  }
+  
+  .filtered-data-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1rem;
+  }
+  
+  .filtered-data-banner .small-btn {
+    align-self: flex-end;
+  }
+}
