@@ -38,7 +38,8 @@ const [varianceData, setVarianceData] = useState([]);
 const [timeSeriesData, setTimeSeriesData] = useState({
   weekly: [],
   monthly: [],
-  yearly: []
+  yearly: [],
+  custom: []
 });
 
 // Active chart tab and time period
@@ -566,11 +567,6 @@ const [dateFilterSummary, setDateFilterSummary] = useState('');
                     <div className={`chart-time-period-selector ${isCustomPeriod ? 'filtered' : ''}`}>
                       <h4>
                         Profit Over Time
-                        {isCustomPeriod && (
-                          <span className="custom-range-indicator">
-                            {dateFilterSummary}
-                          </span>
-                        )}
                       </h4>
                       <div className="time-period-tabs">
                         <button 
