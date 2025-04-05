@@ -133,7 +133,6 @@ const [dateFilterSummary, setDateFilterSummary] = useState('');
       [field]: value
     });
   };
-
   // Apply the custom date filter
   const applyCustomDateFilter = () => {
     if (!customDateRange.from || !customDateRange.to) {
@@ -160,28 +159,31 @@ const [dateFilterSummary, setDateFilterSummary] = useState('');
       return;
     }
     
-    // Create summary text
+    // Format dates for display
     const startFormatted = startDate.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+      year: 'numeric', month: 'short', day: 'numeric'
     });
     
     const endFormatted = endDate.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+      year: 'numeric', month: 'short', day: 'numeric'
     });
     
-    setDateFilterSummary(`Showing ${filteredTournaments.length} tournaments between ${startFormatted} and ${endFormatted}`);
+    // Create summary text
+    const summaryText = `Showing ${filteredTournaments.length} tournaments between ${startFormatted} and ${endFormatted}`;
     
-    // Recalculate stats with filtered tournaments
-    calculateStats(filteredTournaments);
-    
-    // Update UI
-    setIsCustomPeriod(true);
-    setSelectedTimePeriod('custom');
+    // Close popup first
     setShowDatePopup(false);
+    
+    // Use a single batched state update with callback to ensure things happen in sequence
+    setIsCustomPeriod(true);
+    setDateFilterSummary(summaryText);
+    setSelectedTimePeriod('monthly');
+    
+    // Important: Use setTimeout to ensure all state updates have been processed
+    // before calculating stats and updating the chart data
+    setTimeout(() => {
+      calculateStats(filteredTournaments);
+    }, 0);
   };
 
   // Cancel the date popup
@@ -570,25 +572,25 @@ const [dateFilterSummary, setDateFilterSummary] = useState('');
                       </h4>
                       <div className="time-period-tabs">
                         <button 
-                          className={`time-period-btn ${selectedTimePeriod === 'custom' ? 'active' : ''}`}
+                          className={`time-period-btn ${isCustomPeriod || selectedTimePeriod === 'custom' ? 'active' : ''}`}
                           onClick={() => handleTimePeriodChange('custom')}
                         >
                           Custom
                         </button>
                         <button 
-                          className={`time-period-btn ${selectedTimePeriod === 'weekly' ? 'active' : ''}`}
+                          className={`time-period-btn ${selectedTimePeriod === 'weekly' && !isCustomPeriod ? 'active' : ''}`}
                           onClick={() => handleTimePeriodChange('weekly')}
                         >
                           Weekly
                         </button>
                         <button 
-                          className={`time-period-btn ${selectedTimePeriod === 'monthly' ? 'active' : ''}`}
+                          className={`time-period-btn ${selectedTimePeriod === 'monthly' && !isCustomPeriod ? 'active' : ''}`}
                           onClick={() => handleTimePeriodChange('monthly')}
                         >
                           Monthly
                         </button>
                         <button 
-                          className={`time-period-btn ${selectedTimePeriod === 'yearly' ? 'active' : ''}`}
+                          className={`time-period-btn ${selectedTimePeriod === 'yearly' && !isCustomPeriod ? 'active' : ''}`}
                           onClick={() => handleTimePeriodChange('yearly')}
                         >
                           Yearly
