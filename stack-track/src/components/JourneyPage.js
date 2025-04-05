@@ -80,12 +80,12 @@ function JourneyPage() {
       
       {!isCreating && journeys.length > 0 && (
         <div className="journey-actions">
+
           <button onClick={() => setIsCreating(true)} className="create-btn">
             Add New Journey
           </button>
         </div>
       )}
-      
       
       {isCreating ? (
         <CreateJourney 
@@ -109,7 +109,18 @@ function JourneyPage() {
           </button>
         </div>
       )}
+
+      {/* Back to Dashboard Button */}
+      <div className="journey-actions" style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center' }}>
+        <button 
+          onClick={() => navigate('/dashboard')} 
+          className="back-btn"
+        >
+          Back to Dashboard
+        </button>
+      </div>
     </div>
+    
   );
 }
 
