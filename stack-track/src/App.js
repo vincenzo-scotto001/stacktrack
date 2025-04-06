@@ -42,7 +42,7 @@ function App() {
             <h1>StackTrack</h1>
           </Link>
           <nav>
-            <ul>
+            {/* <ul>
               {!session ? (
                 // Show these links when user is not logged in
                 <>
@@ -54,7 +54,7 @@ function App() {
                 <>
                 </>
               )}
-            </ul>
+            </ul> */}
           </nav>
         </header>
         
