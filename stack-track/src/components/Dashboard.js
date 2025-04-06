@@ -54,7 +54,7 @@ function Dashboard() {
 
   return (
     <div className="dashboard">
-      <h2>Welcome to Your Dashboard, {profile.first_name}.</h2>
+      <h2>Hi {profile.first_name}, welcome to your dashboard.</h2>
       
       {error && <div className="error">{error}</div>}
       
