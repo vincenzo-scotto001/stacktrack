@@ -39,7 +39,10 @@ function App() {
         <header className="app-header">
           {/* Conditional link: dashboard if logged in, home if not */}
           <Link to={session ? "/dashboard" : "/"} className="logo-link">
-            <h1>StackTrack</h1>
+            <h1>
+              <span className="logo-stack">Stack</span>
+              <span className="logo-track">Track</span>
+            </h1>
           </Link>
           <nav>
             {/* <ul>
