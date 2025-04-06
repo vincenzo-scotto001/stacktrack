@@ -358,20 +358,26 @@ function TournamentsPage() {
       )}
       
       <div className="tournaments-actions">
-        <button onClick={() => navigate('/register-tournament')} className="add-btn">
-          Add New Tournament
-        </button>
-        <button onClick={() => navigate('/dashboard')} className="back-btn">
-          Back to Dashboard
-        </button>
-        
-        <button 
-          onClick={toggleSelectMode} 
-          className={`select-mode-btn ${isSelectMode ? 'active' : ''}`}
-        >
-          {isSelectMode ? 'Cancel Selection' : 'Select Tournaments'}
-        </button>
-        
+        <div className='stats-action'>
+          <button onClick={() => navigate('/register-tournament')} className="add-btn">
+              Add New Tournament
+            </button>
+          </div>  
+
+        <div className='stats-action'>
+          <button onClick={() => navigate('/dashboard')} className="back-btn">
+            Back to Dashboard
+          </button>
+        </div>
+
+        <div className='stats-action'>
+          <button 
+            onClick={toggleSelectMode} 
+            className={`select-mode-btn ${isSelectMode ? 'active' : ''}`}
+          >
+            {isSelectMode ? 'Cancel Selection' : 'Select Tournaments'}
+          </button>
+        </div>
         {isSelectMode && (
           <>
             <button 
