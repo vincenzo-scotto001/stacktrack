@@ -234,7 +234,7 @@ function FriendsPage() {
         </div>
       </div>
       
-      <div className="friends-actions">
+      <div className="stats-actions">
         <button onClick={() => navigate('/dashboard')} className="back-btn">
           Back to Dashboard
         </button>
