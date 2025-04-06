@@ -15,10 +15,10 @@ function Home() {
             <Link to="/signin" className="btn secondary-btn">Sign In</Link>
           </div>
         </div>
-        <div className="hero-image">
+        {/* <div className="hero-image"> */}
           {/* Placeholder for hero image */}
-          <div className="poker-image-placeholder"></div>
-        </div>
+          {/* <div className="poker-image-placeholder"></div> */}
+        {/* </div> */}
       </section>
 
       <section className="features-section">
