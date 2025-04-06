@@ -2333,9 +2333,8 @@ button:disabled {
   display: inline-flex;
   align-items: center;
   padding: 0.6rem 1rem;
-  background-color: transparent;
-  border: 1px solid var(--primary-color);
-  color: var(--primary-color);
+  background-color: var(--neutral-dark);
+  color: white;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
@@ -2343,7 +2342,7 @@ button:disabled {
 }
 
 .friend-stacks .back-btn:hover {
-  background-color: var(--primary-color);
+  background-color: var(--warning-dark);
   color: white;
 }
 
