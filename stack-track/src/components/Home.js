@@ -35,9 +35,9 @@ function Home() {
             <p>Get detailed statistics on your ROI, ITM percentage, and more to identify strengths and weaknesses.</p>
           </div>
           <div className="feature-card">
-            <div className="feature-icon">💰</div>
-            <h3>Manage Investments</h3>
-            <p>Keep track of action sold and calculate your actual profits accounting for backers and stakes.</p>
+            <div className="feature-icon">👥</div>
+            <h3>Connect with Players</h3>
+            <p>Add friends, see their tournaments, and stay updated with your poker community through the activity feed.</p>
           </div>
           <div className="feature-card">
           <div className="feature-icon">🏆</div>
@@ -67,7 +67,7 @@ function Home() {
 
       <section className="cta-section">
         <h2>Ready to Level Up Your Poker Game?</h2>
-        <p>Join thousands of players who trust StackTrack to keep their poker career on track.</p>
+        <p>Join the three players who trust StackTrack to keep their poker career on track.</p>
         <Link to="/signup" className="btn primary-btn large-btn">Create Free Account</Link>
       </section>
 
