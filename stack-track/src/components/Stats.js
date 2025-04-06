@@ -237,6 +237,7 @@ const [dateFilterSummary, setDateFilterSummary] = useState('');
     const inTheMoney = tournamentsWithProfit.filter(t => t.place && t.winnings > 0).length;
     const itmPercentage = (inTheMoney / tournamentsWithProfit.length) * 100;
     const biggestWin = Math.max(...tournamentsWithProfit.map(t => t.profit));
+    const biggestLoss = Math.min(...tournamentsWithProfit.map(t => t.profit));
     
     const cashedTournaments = tournamentsWithProfit.filter(t => t.winnings > 0);
     const averageCash = cashedTournaments.length 
@@ -252,6 +253,7 @@ const [dateFilterSummary, setDateFilterSummary] = useState('');
       inTheMoney,
       itmPercentage: parseFloat(itmPercentage.toFixed(2)),
       biggestWin: parseFloat(biggestWin.toFixed(2)),
+      biggestLoss: parseFloat(biggestLoss.toFixed(2)),
       averageCash: parseFloat(averageCash.toFixed(2))
     });
 
@@ -509,6 +511,10 @@ const [dateFilterSummary, setDateFilterSummary] = useState('');
                   <div className="stat-value">{formatMoney(basicStats.biggestWin)}</div>
                 </div>
                 <div className="stat-row">
+                  <div className="stat-label">Biggest Loss</div>
+                  <div className="stat-value">{formatMoney(basicStats.biggestLoss)}</div>
+                </div>
+                <div className="stat-row">
                   <div className="stat-label">Average Cash</div>
                   <div className="stat-value">{formatMoney(basicStats.averageCash)}</div>
                 </div>
@@ -642,13 +648,6 @@ const [dateFilterSummary, setDateFilterSummary] = useState('');
                           name="Profit/Loss" 
                           stroke={basicStats.profit >= 0 ? "#27ae60" : "#e74c3c"}
                           strokeWidth={2}
-                          dot={{ 
-                            fill: basicStats.profit >= 0 ? "#27ae60" : "#e74c3c", 
-                            r: 5,
-                            strokeWidth: 1,
-                            stroke: basicStats.profit >= 0 ? "#219955" : "#c0392b"
-                          }}
-                          activeDot={{ r: 8 }}
                         />
                       </LineChart>
                     </ResponsiveContainer>
@@ -699,9 +698,9 @@ const [dateFilterSummary, setDateFilterSummary] = useState('');
                           type="monotone" 
                           dataKey="roi" 
                           name="Running ROI" 
-                          stroke="#27ae60" 
-                          activeDot={{ r: 8 }}
+                          stroke={basicStats.roi >= 0 ? "#27ae60" : "#e74c3c"}
                           strokeWidth={2}
+ 
                         />
                       </LineChart>
                     </ResponsiveContainer>
@@ -746,7 +745,7 @@ const [dateFilterSummary, setDateFilterSummary] = useState('');
                           type="monotone" 
                           dataKey="stdDev" 
                           name="Standard Deviation" 
-                          stroke="#e74c3c" 
+                          stroke="#3498db" 
                           strokeWidth={2}
                         />
                       </LineChart>
