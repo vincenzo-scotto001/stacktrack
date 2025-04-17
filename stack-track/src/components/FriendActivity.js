@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getFriendActivity } from '../services/activityService';
-import { formatDistanceToNow } from 'date-fns';
+import ActivityItem from './ActivityItem';
 
 function FriendActivity() {
   const navigate = useNavigate();
@@ -24,14 +24,6 @@ function FriendActivity() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const formatMoney = (amount) => {
-    return new Intl.NumberFormat('en-US', { 
-      style: 'currency', 
-      currency: 'USD',
-      signDisplay: 'always'
-    }).format(amount);
   };
 
   // Empty state when user has no friends
@@ -74,19 +66,7 @@ function FriendActivity() {
       
       <div className="activity-list">
         {activities.map(activity => (
-          <div className="activity-item" key={activity.id}>
-            <div className="activity-avatar">
-              {activity.userName.split(' ').map(name => name.charAt(0)).join('')}
-            </div>
-            <div className="activity-content">
-              <p>
-                <span className="activity-name">{activity.userName}</span> {activity.description}
-              </p>
-              <p className="activity-time">
-                {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
-              </p>
-            </div>
-          </div>
+          <ActivityItem key={activity.id} activity={activity} />
         ))}
       </div>
       
