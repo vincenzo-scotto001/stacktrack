@@ -24,3 +24,8 @@ yarn-error.log*
 
 
 .env
+# demo-mode build used for screenshots
+/build-demo
+
+# SQL migrations are kept out of the repo
+/supabase/

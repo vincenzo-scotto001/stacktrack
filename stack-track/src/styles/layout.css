@@ -1,0 +1,256 @@
+/* ---------- App shell ----------
+   Phones: top bar + bottom tab bar with a chip-shaped "add" button.
+   Desktop: fixed sidebar. */
+
+.shell {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  font-weight: 800;
+  font-stretch: 125%;
+  font-size: 1.125rem;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+}
+.logo:hover { color: var(--text); }
+.logo-chip {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: repeating-conic-gradient(from -7deg, #f4f4f2 0deg 14deg, var(--orange) 14deg 45deg);
+  display: grid;
+  place-items: center;
+}
+.logo-chip::after {
+  content: '';
+  width: 70%;
+  height: 70%;
+  border-radius: 50%;
+  background: var(--orange);
+  box-shadow: inset 0 0 0 1.5px var(--surface), inset 0 0 0 4px var(--orange);
+}
+
+/* Sidebar */
+.sidebar {
+  display: none;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-height: 42px;
+  padding: 0 var(--s-3);
+  border-radius: var(--r-md);
+  color: var(--text-2);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-decoration: none;
+  position: relative;
+}
+.nav-link:hover { color: var(--text); background: var(--surface-2); }
+.nav-link.active { color: var(--text); background: var(--surface-2); }
+.nav-link.active svg { color: var(--orange); }
+.nav-count {
+  margin-left: auto;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--r-pill);
+  background: var(--orange);
+  color: var(--on-orange);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+}
+.nav-group + .nav-group {
+  margin-top: var(--s-4);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--line);
+}
+
+.sidebar-me {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-2);
+  border-radius: var(--r-md);
+  color: var(--text);
+  text-decoration: none;
+}
+.sidebar-me:hover { background: var(--surface-2); color: var(--text); }
+.sidebar-me strong { display: block; font-size: var(--text-sm); }
+.sidebar-me small { display: block; font-size: var(--text-xs); color: var(--text-2); }
+
+/* Top bar (phones) */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: calc(var(--topbar-h) + var(--safe-top));
+  padding: var(--safe-top) var(--s-2) 0 var(--s-4);
+  background: rgba(0, 0, 0, 0.82);
+  -webkit-backdrop-filter: saturate(140%) blur(14px);
+  backdrop-filter: saturate(140%) blur(14px);
+  border-bottom: 1px solid var(--line);
+}
+.topbar-actions { display: flex; align-items: center; gap: var(--s-1); }
+.topbar-me { display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; }
+
+/* Tab bar (phones) */
+.tabbar {
+  position: fixed;
+  z-index: 40;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(var(--tabbar-h) + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  background: rgba(10, 10, 10, 0.92);
+  -webkit-backdrop-filter: saturate(140%) blur(14px);
+  backdrop-filter: saturate(140%) blur(14px);
+  border-top: 1px solid var(--line);
+}
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--text-3);
+  font-size: 11px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.tab:hover { color: var(--text-2); }
+.tab.active { color: var(--text); }
+.tab.active svg { color: var(--orange); }
+
+.tab-add {
+  align-self: start;
+  justify-self: center;
+  margin-top: -18px;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: repeating-conic-gradient(from -7deg, #f4f4f2 0deg 14deg, var(--orange) 14deg 45deg);
+  box-shadow: 0 0 0 5px var(--bg), 0 10px 24px rgba(237, 123, 63, 0.25);
+  color: var(--on-orange);
+  transition: transform 0.15s var(--ease);
+}
+.tab-add > span {
+  display: grid;
+  place-items: center;
+  width: 76%;
+  height: 76%;
+  border-radius: 50%;
+  background: var(--orange);
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.6);
+}
+.tab-add:hover { color: var(--on-orange); }
+.tab-add:active { transform: scale(0.94); }
+
+/* Content */
+.content {
+  padding-bottom: calc(var(--tabbar-h) + var(--safe-bottom) + var(--s-5));
+}
+
+.page {
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--s-5) var(--s-4) var(--s-6);
+}
+.page-narrow { max-width: 720px; }
+
+@media (min-width: 640px) {
+  .page { padding: var(--s-6) var(--s-6) var(--s-7); }
+}
+
+@media (min-width: 1024px) {
+  .topbar,
+  .tabbar { display: none; }
+
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 30;
+    width: var(--sidebar-w);
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-5);
+    padding: var(--s-5) var(--s-4);
+    border-right: 1px solid var(--line);
+    background: var(--bg);
+    overflow-y: auto;
+  }
+  .sidebar .logo { padding: 0 var(--s-2); }
+  .sidebar nav { flex: 1; }
+
+  .content {
+    margin-left: var(--sidebar-w);
+    padding-bottom: 0;
+  }
+  .page { padding: var(--s-7) var(--s-7) var(--s-8); }
+}
+
+/* Page header */
+.page-header {
+  margin-bottom: var(--s-6);
+}
+.page-header-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+}
+.page-header-text { min-width: 0; }
+.page-subtitle {
+  margin-top: var(--s-1);
+  color: var(--text-2);
+}
+.page-actions {
+  display: flex;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+}
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin: 0 0 var(--s-3) -4px;
+  color: var(--text-2);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.back-link:hover { color: var(--text); }
+
+.section-tabs {
+  margin-bottom: var(--s-5);
+}
+
+/* Responsive grids */
+.grid-2 {
+  display: grid;
+  gap: var(--s-5);
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 900px) {
+  .grid-2 { grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); align-items: start; }
+  .grid-2.even { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

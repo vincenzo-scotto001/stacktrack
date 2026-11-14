@@ -1,70 +1,61 @@
-# Getting Started with Create React App
+# StackTrack
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Track your poker tournaments, see your real results after action sold, plan series, and follow your friends.
+React 19 + Supabase, installable as a PWA.
 
-## Available Scripts
+## Run it
 
-In the project directory, you can run:
+```bash
+npm install
+npm start
+```
 
-### `npm start`
+Create a `.env` file (it's git-ignored) with your Supabase project's values:
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+```
+REACT_APP_SUPABASE_URL=https://xxxx.supabase.co
+REACT_APP_SUPABASE_ANON_KEY=eyJ...
+```
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### Demo mode
 
-### `npm test`
+Try every screen with sample players and results, without touching your database:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```bash
+REACT_APP_DEMO=true npm start
+```
 
-### `npm run build`
+Sign in with any email and password. Data resets when you reload. Demo code is stripped from production builds (see `.env.production`).
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Database
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+The SQL migrations are kept out of this repo. Run them in your Supabase SQL editor, in order: `001_features.sql` turns on profiles, notifications and more, and `002_security.sql` adds row-level security (run it before more people sign up). If you keep them in a `supabase/` folder here, it's git-ignored.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Scripts
 
-### `npm run eject`
+| Command | |
+|---|---|
+| `npm start` | Dev server |
+| `npm test` | Unit tests (stats math, CSV import/export, formatting) |
+| `npm run build` | Production build |
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## What's where
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```
+src/
+  api/          All Supabase calls. Pages never query Supabase directly.
+  lib/          Pure logic with tests: stats.js (ROI, streaks, drawdown…), csv.js, format.js
+  context/      AuthContext (session, profile, feature detection), UIContext (toasts, confirm dialogs)
+  pages/        One file per route
+  components/   Shared UI: layout/ (shell, nav, guards), ui/, charts/, feed/
+  styles/       tokens.css (colours, type, spacing) → base → components → layout → pages
+  demo/         In-memory Supabase stand-in for demo mode
+public/
+  serviceWorker.js  Offline app shell; never caches Supabase data
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## How results are counted
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- **Buy-in** is the total you paid, including re-entries.
+- **Action sold** is the % of your action backers bought at 1.0 markup.
+- **Your result** = (winnings − buy-in) × (1 − sold). ROI, the bankroll graph, the leaderboard and every stat use this, so they reflect only your share.
