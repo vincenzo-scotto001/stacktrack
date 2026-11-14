@@ -1,134 +1,85 @@
-// This is the service worker with the Cache-first network strategy
+/* StackTrack service worker
+ *
+ * The old worker precached CRA *development* filenames (main.chunk.js,
+ * bundle.js…) that don't exist in production builds. cache.addAll() rejects
+ * if any request fails, so the worker never installed and the app had no
+ * offline support. This version only precaches files that always exist and
+ * caches hashed build assets as they're requested.
+ *
+ *   Navigations      → network first, cached app shell when offline
+ *   /static/* assets → cache first (filenames are content-hashed)
+ *   Supabase / API   → never cached (always live data)
+ */
 
-const CACHE = "stacktrack-cache-v1";
-const precacheResources = [
-  '/',
-  '/index.html',
-  '/static/js/main.chunk.js',
-  '/static/js/0.chunk.js',
-  '/static/js/bundle.js',
-  '/static/css/main.chunk.css',
-  '/manifest.json',
-  '/logo192.jpg',
-  '/logo512.jpg',
-  '/favicon.ico'
-];
+const VERSION = 'v2';
+const SHELL_CACHE = `stacktrack-shell-${VERSION}`;
+const ASSET_CACHE = `stacktrack-assets-${VERSION}`;
+const SHELL = ['/', '/index.html', '/manifest.json', '/icon-192.png', '/icon-512.png', '/favicon.ico'];
 
-// The install handler takes care of precaching the resources we always need
-self.addEventListener('install', event => {
-  console.log('Service worker install event!');
-  self.skipWaiting();
-  
+self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE)
-      .then(cache => {
-        return cache.addAll(precacheResources);
-      })
+    caches.open(SHELL_CACHE).then((cache) =>
+      Promise.all(SHELL.map((url) => cache.add(url).catch(() => null))),
+    ),
   );
 });
 
-// The activate handler takes care of cleaning up old caches
-self.addEventListener('activate', event => {
-  console.log('Service worker activate event!');
-  
-  // Clean up old caches
+self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.filter(cacheName => {
-          return cacheName !== CACHE;
-        }).map(cacheName => {
-          return caches.delete(cacheName);
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys
+          .filter((k) => k.startsWith('stacktrack') && k !== SHELL_CACHE && k !== ASSET_CACHE)
+          .map((k) => caches.delete(k)),
+      ),
+    ).then(() => self.clients.claim()),
+  );
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
+});
+
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  if (request.method !== 'GET') return;
+  const url = new URL(request.url);
+
+  // Only handle our own origin; Supabase and other APIs go straight to network.
+  if (url.origin !== self.location.origin) return;
+
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(SHELL_CACHE).then((cache) => cache.put('/index.html', copy));
+          }
+          return response;
         })
-      );
-    })
-  );
-});
+        .catch(() => caches.match('/index.html')),
+    );
+    return;
+  }
 
-// The fetch handler serves responses for same-origin resources from a cache
-self.addEventListener('fetch', event => {
-  // Skip cross-origin requests
-  if (event.request.url.startsWith(self.location.origin)) {
-    // For API calls (Supabase), use network-first strategy
-    if (event.request.url.includes('supabase.co')) {
-      event.respondWith(
-        fetch(event.request)
-          .then(response => {
-            // Put a copy of the response in the cache if it's valid
-            if (response.status === 200) {
-              const responseClone = response.clone();
-              caches.open(CACHE).then(cache => {
-                cache.put(event.request, responseClone);
-              });
-            }
-            return response;
-          })
-          .catch(() => {
-            // If network fails, try to get from cache
-            return caches.match(event.request);
-          })
-      );
-    } else {
-      // For non-API requests, use cache-first strategy
-      event.respondWith(
-        caches.match(event.request)
-          .then(cachedResponse => {
-            if (cachedResponse) {
-              return cachedResponse;
-            }
-            
-            return fetch(event.request)
-              .then(response => {
-                // Put a copy of the response in the cache
-                if (response.status === 200) {
-                  const responseClone = response.clone();
-                  caches.open(CACHE).then(cache => {
-                    cache.put(event.request, responseClone);
-                  });
-                }
-                return response;
-              });
-          })
-      );
-    }
+  if (url.pathname.startsWith('/static/')) {
+    event.respondWith(
+      caches.match(request).then((cached) =>
+        cached ||
+        fetch(request).then((response) => {
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(ASSET_CACHE).then((cache) => cache.put(request, copy));
+          }
+          return response;
+        }),
+      ),
+    );
+    return;
+  }
+
+  if (SHELL.includes(url.pathname)) {
+    event.respondWith(caches.match(request).then((cached) => cached || fetch(request)));
   }
 });
-
-// Background sync for offline operations
-self.addEventListener('sync', event => {
-  if (event.tag === 'sync-tournaments') {
-    event.waitUntil(syncData());
-  }
-});
-
-// Function to sync data when connection is restored
-async function syncData() {
-  // Get pending operations from IndexedDB
-  const pendingOperations = await getPendingOperations();
-  
-  // Process each operation
-  for (const op of pendingOperations) {
-    try {
-      await processOperation(op);
-      await markOperationComplete(op.id);
-    } catch (error) {
-      console.error('Error syncing operation:', error);
-    }
-  }
-}
-
-// These would be implemented with IndexedDB
-function getPendingOperations() {
-  // This would fetch from IndexedDB in a real implementation
-  return Promise.resolve([]);
-}
-
-function processOperation(operation) {
-  // This would send the operation to your backend
-  return Promise.resolve();
-}
-
-function markOperationComplete(id) {
-  // This would update the operation status in IndexedDB
-  return Promise.resolve();
-}

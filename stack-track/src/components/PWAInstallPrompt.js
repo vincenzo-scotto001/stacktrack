@@ -1,103 +1,61 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Share, X } from 'lucide-react';
+import { canPromptInstall, isIOS, isStandalone, onInstallChange, promptInstall } from '../lib/install';
+import { useAuth } from '../context/AuthContext';
 
-function PWAInstallPrompt() {
-  const [installPromptEvent, setInstallPromptEvent] = useState(null);
-  const [showPrompt, setShowPrompt] = useState(false);
-  const [isIOS, setIsIOS] = useState(false);
+const DISMISS_KEY = 'pwaPromptDismissedAt';
+const SNOOZE_DAYS = 21;
+
+function snoozed() {
+  try {
+    const at = Number(localStorage.getItem(DISMISS_KEY));
+    return at && Date.now() - at < SNOOZE_DAYS * 86400000;
+  } catch (e) {
+    return false;
+  }
+}
+
+/** Gentle "add to home screen" banner for signed-in players on phones. */
+export default function PWAInstallPrompt() {
+  const { session } = useAuth();
+  const [ready, setReady] = useState(canPromptInstall());
+  const [visible, setVisible] = useState(false);
+  const ios = isIOS();
+
+  useEffect(() => onInstallChange(() => setReady(canPromptInstall())), []);
 
   useEffect(() => {
-    // Check if running on iOS device
-    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    setIsIOS(isIOSDevice);
+    if (!session || isStandalone() || snoozed()) return undefined;
+    if (!ready && !ios) return undefined;
+    const t = setTimeout(() => setVisible(true), 20000);
+    return () => clearTimeout(t);
+  }, [session, ready, ios]);
 
-    // For non-iOS devices, capture the beforeinstallprompt event
-    if (!isIOSDevice) {
-      const handler = (e) => {
-        // Prevent Chrome from automatically showing the prompt
-        e.preventDefault();
-        // Stash the event so it can be triggered later
-        setInstallPromptEvent(e);
-        // Check if we should show our custom prompt
-        checkIfShouldShowPrompt();
-      };
+  if (!visible) return null;
 
-      window.addEventListener('beforeinstallprompt', handler);
-
-      return () => {
-        window.removeEventListener('beforeinstallprompt', handler);
-      };
-    } else {
-      // For iOS, check if we should show Safari instructions
-      checkIfShouldShowPrompt();
-    }
-  }, []);
-
-  const checkIfShouldShowPrompt = () => {
-    // Check if the user has dismissed the prompt before
-    const promptDismissed = localStorage.getItem('pwaPromptDismissed');
-    
-    // Only show the prompt if user hasn't explicitly dismissed it
-    // You could also add logic to not show it again for X days
-    if (!promptDismissed) {
-      // Don't show immediately - wait for user to interact with the site
-      setTimeout(() => {
-        setShowPrompt(true);
-      }, 30000); // Show after 30 seconds
-    }
+  const dismiss = () => {
+    try { localStorage.setItem(DISMISS_KEY, String(Date.now())); } catch (e) { /* ignore */ }
+    setVisible(false);
   };
-
-  const handleInstallClick = async () => {
-    if (!installPromptEvent) return;
-    
-    // Show the browser's install prompt
-    installPromptEvent.prompt();
-    
-    // Wait for the user to respond to the prompt
-    const choiceResult = await installPromptEvent.userChoice;
-    
-    // Clear the saved prompt event - it can only be used once
-    setInstallPromptEvent(null);
-    setShowPrompt(false);
-    
-    // Optionally track the outcome for analytics
-    if (choiceResult.outcome === 'accepted') {
-      console.log('User accepted the install prompt');
-    } else {
-      console.log('User dismissed the install prompt');
-    }
-  };
-
-  const handleDismiss = () => {
-    // Remember that the user dismissed the prompt
-    localStorage.setItem('pwaPromptDismissed', 'true');
-    setShowPrompt(false);
-  };
-
-  if (!showPrompt) {
-    return null;
-  }
 
   return (
-    <div className="app-install-prompt">
-      {isIOS ? (
-        <p>
-          Install StackTrack: tap <span style={{ fontSize: '1.2em' }}>⎙</span> then "Add to Home Screen"
-        </p>
-      ) : (
-        <p>Add StackTrack to your home screen for quick access!</p>
-      )}
-      <div className="app-install-actions">
-        {!isIOS && (
-          <button className="install-button" onClick={handleInstallClick}>
-            Install
-          </button>
+    <div className="install-banner" role="dialog" aria-label="Install StackTrack">
+      <span className="logo-chip" aria-hidden="true" />
+      <p className="grow">
+        {ios ? (
+          <>Add StackTrack to your home screen: tap <Share size={15} className="inline-icon" aria-label="Share" /> then “Add to Home Screen”.</>
+        ) : (
+          'Install StackTrack for one-tap access at the table.'
         )}
-        <button className="dismiss-button" onClick={handleDismiss}>
-          Not Now
+      </p>
+      {!ios && (
+        <button type="button" className="btn btn-primary btn-sm" onClick={async () => { await promptInstall(); setVisible(false); }}>
+          Install
         </button>
-      </div>
+      )}
+      <button type="button" className="icon-btn" onClick={dismiss} aria-label="Not now">
+        <X size={18} />
+      </button>
     </div>
   );
 }
-
-export default PWAInstallPrompt;

@@ -1,88 +1,82 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
-import { supabase } from './supabaseClient';
-import SignUp from './components/signup';
-import SignIn from './components/signin';
-import Dashboard from './components/Dashboard';
-import TournamentsPage from './components/TournamentsPage';
-import AddTournament from './components/AddTournament';
-import Stats from './components/Stats';
-import Home from './components/Home';
-import JourneyPage from './components/JourneyPage';
-import FriendsPage from './components/FriendsPage';
-import FriendStacks from './components/FriendStacks';
+import React, { lazy, Suspense } from 'react';
+import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { UIProvider } from './context/UIContext';
+import { RequireAuth, PublicOnly } from './components/layout/Guards';
+import AppShell from './components/layout/AppShell';
+import { PageLoader } from './components/ui/States';
+import Landing from './pages/Landing';
+import { SignIn, SignUp, ResetPassword } from './pages/Auth';
+import NotFound from './pages/NotFound';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
+import ScrollToTop from './components/layout/ScrollToTop';
 
-function App() {
-  const [session, setSession] = useState(null);
-  
-  useEffect(() => {
-    // Check for an active session when the component mounts
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Tournaments = lazy(() => import('./pages/Tournaments'));
+const TournamentForm = lazy(() => import('./pages/TournamentForm'));
+const ImportTournaments = lazy(() => import('./pages/ImportTournaments'));
+const Stats = lazy(() => import('./pages/Stats'));
+const Journeys = lazy(() => import('./pages/Journeys'));
+const JourneyCreate = lazy(() => import('./pages/JourneyCreate'));
+const JourneyDetail = lazy(() => import('./pages/JourneyDetail'));
+const Feed = lazy(() => import('./pages/Feed'));
+const Friends = lazy(() => import('./pages/Friends'));
+const Leaderboard = lazy(() => import('./pages/Leaderboard'));
+const PlayerProfile = lazy(() => import('./pages/PlayerProfile'));
+const Notifications = lazy(() => import('./pages/Notifications'));
+const Settings = lazy(() => import('./pages/Settings'));
+const Post = lazy(() => import('./pages/Post'));
 
-    // Set up a listener for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_, session) => {
-        setSession(session);
-      }
-    );
-
-    // Clean up the subscription when the component unmounts
-    return () => subscription.unsubscribe();
-  }, []);
-
-  return (
-    <Router>
-      <div className="app">
-        <header className="app-header">
-          {/* Conditional link: dashboard if logged in, home if not */}
-          <Link to={session ? "/dashboard" : "/"} className="logo-link">
-            <h1>
-              <span className="logo-stack">Stack</span>
-              <span className="logo-track">Track</span>
-            </h1>
-          </Link>
-          <nav>
-            {/* <ul>
-              {!session ? (
-                // Show these links when user is not logged in
-                <>
-                  <li><Link to="/signup">Sign Up</Link></li>
-                  <li><Link to="/signin">Sign In</Link></li>
-                </>
-              ) : (
-                // Show these links when user is logged in
-                <>
-                </>
-              )}
-            </ul> */}
-          </nav>
-        </header>
-        
-        <main>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/signin" element={<SignIn />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/tournaments" element={<TournamentsPage />} />
-            <Route path="/register-tournament" element={<AddTournament />} />
-            <Route path="/stats" element={<Stats />} />
-            <Route path="/journeys" element={<JourneyPage />} />
-            <Route path="/friends" element={<FriendsPage />} />
-            <Route path="/friend-stacks/:friendId" element={<FriendStacks />} />
-          </Routes>
-        </main>
-        
-        <footer>
-          <p>&copy; 2025 StackTrack</p>
-        </footer>
-        <PWAInstallPrompt />
-      </div>
-    </Router>
-  );
+function LegacyFriendRedirect() {
+  const { friendId } = useParams();
+  return <Navigate to={`/players/${friendId}`} replace />;
 }
 
-export default App;
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <UIProvider>
+          <ScrollToTop />
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route element={<PublicOnly />}>
+                <Route path="/" element={<Landing />} />
+                <Route path="/signin" element={<SignIn />} />
+                <Route path="/signup" element={<SignUp />} />
+              </Route>
+              <Route path="/reset-password" element={<ResetPassword />} />
+
+              <Route element={<RequireAuth />}>
+                <Route element={<AppShell />}>
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/tournaments" element={<Tournaments />} />
+                  <Route path="/tournaments/new" element={<TournamentForm />} />
+                  <Route path="/tournaments/import" element={<ImportTournaments />} />
+                  <Route path="/tournaments/:id/edit" element={<TournamentForm />} />
+                  <Route path="/stats" element={<Stats />} />
+                  <Route path="/journeys" element={<Journeys />} />
+                  <Route path="/journeys/new" element={<JourneyCreate />} />
+                  <Route path="/journeys/:id" element={<JourneyDetail />} />
+                  <Route path="/feed" element={<Feed />} />
+                  <Route path="/friends" element={<Friends />} />
+                  <Route path="/leaderboard" element={<Leaderboard />} />
+                  <Route path="/players/:id" element={<PlayerProfile />} />
+                  <Route path="/notifications" element={<Notifications />} />
+                  <Route path="/posts/:id" element={<Post />} />
+                  <Route path="/settings" element={<Settings />} />
+                </Route>
+              </Route>
+
+              {/* Old URLs keep working */}
+              <Route path="/register-tournament" element={<Navigate to="/tournaments/new" replace />} />
+              <Route path="/friend-stacks/:friendId" element={<LegacyFriendRedirect />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+          <PWAInstallPrompt />
+        </UIProvider>
+      </AuthProvider>
+    </BrowserRouter>
+  );
+}

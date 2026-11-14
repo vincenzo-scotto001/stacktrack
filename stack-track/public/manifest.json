@@ -1,30 +1,23 @@
 {
   "short_name": "StackTrack",
-  "name": "StackTrack - Poker Tournament Tracker",
-  "description":"Track your poker tournaments, statistics, and connect with other players",
-  "icons": [
-    {
-      "src": "stacktrack_logo_2.jpg",
-      "sizes": "64x64",
-      "type": "image/x-icon"
-    },
-    {
-      "src": "logo192.jpg",
-      "type": "image/png",
-      "sizes": "192x192",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "logo512.jpg",
-      "type": "image/png",
-      "sizes": "512x512"
-    }
-  ],
-  "start_url": ".",
-  "display": "standalone",
-  "theme_color": "#2c3e50",
-  "background_color": "#f8f9fa",
-  "orientation": "portrait-primary",
+  "name": "StackTrack – Poker Tournament Tracker",
+  "description": "Track your poker tournaments, statistics, and connect with other players.",
+  "id": "/",
+  "start_url": "/dashboard",
   "scope": "/",
-  "categories": ["sports", "finance", "utilities"]
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#000000",
+  "background_color": "#000000",
+  "categories": ["sports", "finance", "utilities"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Add tournament", "short_name": "Add", "url": "/tournaments/new", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "Stats", "url": "/stats", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "Feed", "url": "/feed", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] }
+  ]
 }

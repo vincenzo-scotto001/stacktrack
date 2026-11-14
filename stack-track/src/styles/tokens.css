@@ -1,0 +1,73 @@
+/* StackTrack design tokens
+   Palette comes straight from the chip-stack logo: chip black, chip gray and
+   chip orange, on true black (kind to OLED phones). Gain/loss colours are
+   reserved for money and are deliberately far from the orange accent. */
+
+:root {
+  color-scheme: dark;
+
+  /* Surfaces */
+  --bg: #000000;
+  --surface: #141414;          /* chip black */
+  --surface-2: #1c1c1e;
+  --surface-3: #262628;
+  --line: #2a2a2d;
+  --line-strong: #3b3b3f;
+
+  /* Text */
+  --text: #f4f4f2;
+  --text-2: #a9aaaf;
+  --text-3: #7c7d81;           /* chip gray – large/secondary only */
+
+  /* Accent */
+  --orange: #ed7b3f;           /* chip orange */
+  --orange-hover: #f4925d;
+  --orange-press: #d96a2f;
+  --orange-soft: rgba(237, 123, 63, 0.14);
+  --on-orange: #141414;
+
+  /* Money */
+  --gain: #45d38e;
+  --gain-soft: rgba(69, 211, 142, 0.12);
+  --loss: #f2606f;
+  --loss-soft: rgba(242, 96, 111, 0.12);
+
+  /* Type – one family, two widths */
+  --font: 'Archivo Variable', 'Archivo', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --wide: 118%;                 /* font-stretch for headings and numbers */
+  --text-xs: 0.75rem;   /* 12 */
+  --text-sm: 0.875rem;  /* 14 */
+  --text-md: 1rem;      /* 16 */
+  --text-lg: 1.25rem;   /* 20 */
+  --text-xl: 1.5625rem; /* 25 */
+  --text-2xl: 1.9375rem;/* 31 */
+  --text-3xl: 2.4375rem;/* 39 */
+  --text-4xl: 3.0625rem;/* 49 */
+  --text-5xl: 3.8125rem;/* 61 */
+
+  /* Space */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 64px;
+
+  /* Shape – radius follows hierarchy: panels > controls > tags */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 18px;
+  --r-pill: 999px;
+
+  --focus: 0 0 0 2px var(--bg), 0 0 0 4px var(--orange);
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  --sidebar-w: 248px;
+  --topbar-h: 56px;
+  --tabbar-h: 64px;
+  --content-max: 1080px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
+}
