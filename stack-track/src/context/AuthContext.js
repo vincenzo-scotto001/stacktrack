@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 import { supabase } from '../supabaseClient';
 import { detectCapabilities, getCaps } from '../api/core';
 import { ensureOwnProfile, clearProfileCache } from '../api/profiles';
+import { clearTournamentCache } from '../api/tournaments';
 
 const AuthContext = createContext(null);
 
@@ -34,6 +35,7 @@ export function AuthProvider({ children }) {
     if (!session?.user) {
       setProfile(null);
       clearProfileCache();
+      clearTournamentCache();
       return undefined;
     }
     let cancelled = false;

@@ -2,7 +2,7 @@
 // It implements the subset of the query builder StackTrack uses, over seeded
 // sample data, so every screen can be explored without a backend.
 
-import { seedDatabase, DEMO_USER } from './seed';
+import { seedDatabase, DEMO_USER, linkTournament } from './seed';
 
 let idCounter = 1000;
 const newId = (prefix = 'id') => `${prefix}-${(idCounter += 1).toString(36)}`;
@@ -68,6 +68,13 @@ const UNIQUE = {
 };
 
 const TRIGGERS = {
+  tournaments: (db, row) => linkTournament(db, row),
+  catalog_events: (db, row) => {
+    if (row.player_count == null) Object.assign(row, { player_count: 0, last_played: null });
+    ['event_date', 'weekday', 'start_time', 'guarantee', 'game_type', 'series_id'].forEach((k) => {
+      if (row[k] === undefined) row[k] = null;
+    });
+  },
   activity_likes: (db, row) => {
     const act = db.activity_feed.find((a) => a.id === row.activity_id);
     if (act && act.user_id !== row.user_id) {
@@ -236,6 +243,7 @@ class Query {
         const next = { ...r, ...this.payload };
         if (this.violates(next, r)) return { data: null, error: { code: '23505', message: 'duplicate key value violates unique constraint' } };
         Object.assign(r, this.payload);
+        if (this.table === 'tournaments') linkTournament(this.db, r);
       }
       return this.returning ? this.finish(clone(rows)) : { data: null, error: null };
     }
@@ -243,11 +251,55 @@ class Query {
     if (this.op === 'delete') {
       const rows = this.rows();
       this.db[this.table] = table.filter((r) => !rows.includes(r));
+      if (this.table === 'catalog_series') {
+        const ids = new Set(rows.map((r) => r.id));
+        this.db.catalog_events = this.db.catalog_events.filter((e) => !ids.has(e.series_id));
+      }
       return { data: this.returning ? clone(rows) : null, error: null };
     }
 
     return { data: null, error: null };
   }
+}
+
+
+const norm = (s) => String(s || '').trim().replace(/\s+/g, ' ').toLowerCase();
+const dayNum = (d) => Math.round(new Date(`${d}T12:00:00`).getTime() / 86400000);
+
+// In-browser versions of migration 003's search functions.
+function searchCatalogRpc(db, uid, { q, on_date: onDate, max_results: max = 8 }) {
+  const term = norm(q);
+  if (term.length < 2) return [];
+  const words = term.split(' ');
+  const d = dayNum(onDate || new Date().toISOString().slice(0, 10));
+  return db.catalog_events
+    .map((e) => {
+      const hay = norm(`${e.name} ${e.venue}`);
+      if (!words.every((w) => hay.includes(w))) return null;
+      if (e.event_date && Math.abs(dayNum(e.event_date) - d) > 120) return null;
+      const mine = db.catalog_event_players.some((p) => p.event_id === e.id && p.user_id === uid);
+      if (!(e.source === 'official' || e.player_count >= 2 || mine)) return null;
+      const sim = hay.startsWith(words[0]) ? 0.9 : 0.6;
+      const score = sim
+        + (e.event_date ? 0.7 / (1 + Math.abs(dayNum(e.event_date) - d) / 2) : 0.3)
+        + Math.min(e.player_count, 50) / 250 + (mine ? 0.2 : 0);
+      const s = db.catalog_series.find((x) => x.id === e.series_id);
+      return { ...clone(e), series_name: s ? s.name : null, mine, score };
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, max);
+}
+
+function searchSeriesRpc(db, { q = '', max_results: max = 12 }) {
+  const term = norm(q);
+  const today = new Date().toISOString().slice(0, 10);
+  const upcoming = (s) => (s.end_date || s.start_date || today) >= today;
+  return db.catalog_series
+    .filter((s) => !term || term.split(' ').every((w) => norm(`${s.name} ${s.venue} ${s.city || ''}`).includes(w)))
+    .sort((a, b) => (upcoming(b) - upcoming(a)) || String(a.start_date || '9999').localeCompare(String(b.start_date || '9999')))
+    .slice(0, max)
+    .map((s) => ({ ...clone(s), event_count: db.catalog_events.filter((e) => e.series_id === s.id).length }));
 }
 
 const SESSION_KEY = 'stacktrack-demo-session';
@@ -275,7 +327,14 @@ export function createDemoClient() {
 
   return {
     from: (table) => new Query(db, table),
-    rpc: async () => ({ data: null, error: { code: 'PGRST202', message: 'function not found' } }),
+    rpc: async (fn, args = {}) => {
+      await new Promise((r) => setTimeout(r, 60));
+      const uid = session && session.user.id;
+      if (fn === 'is_admin') return { data: db.app_admins.some((a) => a.user_id === uid), error: null };
+      if (fn === 'search_catalog') return { data: searchCatalogRpc(db, uid, args), error: null };
+      if (fn === 'search_series') return { data: searchSeriesRpc(db, args), error: null };
+      return { data: null, error: { code: 'PGRST202', message: 'function not found' } };
+    },
     auth: {
       getSession: async () => ({ data: { session }, error: null }),
       getUser: async () => ({ data: { user: session ? session.user : null }, error: null }),

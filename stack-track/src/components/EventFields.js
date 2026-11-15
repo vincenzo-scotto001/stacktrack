@@ -1,14 +1,35 @@
 import React from 'react';
+import TournamentPicker from './TournamentPicker';
+import { fillFromSuggestion } from '../lib/catalog';
 
 /** Editable fields for one journey event, used in create and edit. */
 export default function EventFields({ value, onChange, minDate, maxDate, idPrefix, withResult = false }) {
   const set = (k) => (e) => onChange({ ...value, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value });
   const id = (k) => `${idPrefix}-${k}`;
+  const inRange = (d) => d && (!minDate || d >= minDate) && (!maxDate || d <= maxDate);
+  const pick = (sugg) => {
+    const f = fillFromSuggestion(sugg, value);
+    onChange({
+      ...value,
+      tournament_name: f.tournament_name,
+      location: f.location,
+      buy_in: f.buy_in,
+      date: inRange(f.date) ? f.date : value.date,
+    });
+  };
   return (
     <div className="form-grid">
       <div className="field span-2">
         <label htmlFor={id('name')}>Event</label>
-        <input id={id('name')} className="input" value={value.tournament_name} onChange={set('tournament_name')} placeholder="e.g. Event #12 $1,500 Monster Stack" required />
+        <TournamentPicker
+          id={id('name')}
+          value={value.tournament_name}
+          onChange={(name) => onChange({ ...value, tournament_name: name })}
+          onPick={pick}
+          date={value.date || minDate}
+          placeholder="Start typing: e.g. Event #12 $1,500"
+          required
+        />
       </div>
       <div className="field">
         <label htmlFor={id('date')}>Date</label>

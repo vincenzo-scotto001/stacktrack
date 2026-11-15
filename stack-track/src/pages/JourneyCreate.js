@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertCircle, Plus, Copy, Trash2 } from 'lucide-react';
+import { AlertCircle, Plus, Copy, Trash2, CalendarRange } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
 import EventFields from '../components/EventFields';
+import SchedulePicker, { scheduleToEvents } from '../components/SchedulePicker';
+import { useAuth } from '../context/AuthContext';
 import { useUI } from '../context/UIContext';
 import { createJourney } from '../api/journeys';
 import { enrich } from '../lib/stats';
@@ -13,6 +15,8 @@ const blank = (date = '', location = '') => ({ key: Math.random().toString(36).s
 export default function JourneyCreate() {
   const navigate = useNavigate();
   const { toast } = useUI();
+  const { caps } = useAuth();
+  const [showSchedules, setShowSchedules] = useState(false);
   const [journey, setJourney] = useState({ name: '', start_date: '', end_date: '' });
   const [events, setEvents] = useState([blank()]);
   const [busy, setBusy] = useState(false);
@@ -29,6 +33,23 @@ export default function JourneyCreate() {
   const add = () => {
     const last = events[events.length - 1];
     setEvents((list) => [...list, blank(last?.date || journey.start_date, last?.location || '')]);
+  };
+
+  const applySchedule = ({ series, events: picked }) => {
+    const rows = scheduleToEvents(series, picked);
+    const dates = rows.map((r) => r.date).sort();
+    setJourney((j) => ({
+      name: j.name || series.name,
+      start_date: j.start_date && j.start_date <= dates[0] ? j.start_date : dates[0],
+      end_date: j.end_date && j.end_date >= dates[dates.length - 1] ? j.end_date : dates[dates.length - 1],
+    }));
+    setEvents((list) => {
+      const kept = list.filter((ev) => ev.tournament_name.trim());
+      const have = new Set(kept.map((ev) => ev.key));
+      return [...kept, ...rows.filter((r) => !have.has(r.key))].sort((a, b) => (a.date > b.date ? 1 : a.date < b.date ? -1 : 0));
+    });
+    setShowSchedules(false);
+    toast(`Added ${rows.length} ${rows.length === 1 ? 'event' : 'events'} from ${series.name}.`);
   };
 
   const total = events.reduce((s, e) => s + (Number(e.buy_in) || 0), 0);
@@ -53,6 +74,18 @@ export default function JourneyCreate() {
       <PageHeader title="New journey" back={{ to: '/journeys', label: 'Journeys' }} subtitle="Plan every event of a series or trip." />
       <form onSubmit={submit} className="stack-lg">
         {error && <div className="form-error" role="alert"><AlertCircle size={16} aria-hidden="true" /><span>{error}</span></div>}
+
+        {caps.catalog && (showSchedules ? (
+          <SchedulePicker onUse={applySchedule} onClose={() => setShowSchedules(false)} />
+        ) : (
+          <button type="button" className="schedule-cta" onClick={() => setShowSchedules(true)}>
+            <CalendarRange size={20} aria-hidden="true" />
+            <span className="grow">
+              <strong>Start from a published schedule</strong>
+              <span className="muted">Pick a series and tick the events you’ll play. Dates and buy-ins fill in for you.</span>
+            </span>
+          </button>
+        ))}
 
         <section className="panel">
           <div className="form-grid">

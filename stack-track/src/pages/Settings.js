@@ -121,7 +121,7 @@ function PasswordForm() {
 }
 
 export default function Settings() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, caps } = useAuth();
   const { toast, confirm } = useUI();
   const navigate = useNavigate();
   const [installable, setInstallable] = useState(canPromptInstall());
@@ -163,6 +163,14 @@ export default function Settings() {
             {!isDemo && <PasswordForm />}
           </div>
         </section>
+
+        {caps.admin && (
+          <section className="panel">
+            <div className="panel-head"><h2>Admin</h2></div>
+            <p className="muted section-gap">Load official series schedules so players can pick events instead of typing them.</p>
+            <Link to="/admin/schedules" className="btn btn-ghost">Manage schedules</Link>
+          </section>
+        )}
 
         <section className="panel">
           <div className="panel-head"><h2>Your data</h2></div>

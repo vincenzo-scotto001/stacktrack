@@ -9,7 +9,9 @@ import {
   hasResult,
 } from './stats';
 import { money, ordinal, parseDay, toDayString, compactMoney, percent } from './format';
-import { parseCsv, importTournamentsFromCsv, tournamentsToCsv } from './csv';
+import {
+  parseCsv, importTournamentsFromCsv, tournamentsToCsv, importScheduleFromCsv, parseTime, parseAmount, parseWeekday,
+} from './csv';
 
 const T = (o) => ({ id: Math.random().toString(36).slice(2), tournament_name: 'Event', location: 'Venue', action_sold: 0, winnings: 0, place: null, ...o });
 
@@ -192,5 +194,106 @@ describe('csv', () => {
     const { rows, errors } = importTournamentsFromCsv('Name,Date,Buy-in\nGood,2026-01-01,100\nBad,someday,100');
     expect(rows).toHaveLength(1);
     expect(errors[0]).toMatch(/Row 3/);
+  });
+});
+
+describe('schedule import', () => {
+  test('parses times in common formats', () => {
+    expect(parseTime('11:00 AM')).toBe('11:00');
+    expect(parseTime('7:10 pm')).toBe('19:10');
+    expect(parseTime('12pm')).toBe('12:00');
+    expect(parseTime('12:30 a.m.')).toBe('00:30');
+    expect(parseTime('19:00')).toBe('19:00');
+    expect(parseTime('')).toBeNull();
+    expect(parseTime('noonish')).toBeUndefined();
+    expect(parseTime('13 pm')).toBeUndefined();
+  });
+
+  test('parses guarantees and buy-ins', () => {
+    expect(parseAmount('$500K GTD')).toBe(500000);
+    expect(parseAmount('$1.5M')).toBe(1500000);
+    expect(parseAmount('$1,100')).toBe(1100);
+    expect(parseAmount('—')).toBeNull();
+    expect(Number.isNaN(parseAmount('lots'))).toBe(true);
+  });
+
+  test('parses weekdays', () => {
+    expect(parseWeekday('Mon')).toBe(1);
+    expect(parseWeekday('Saturdays')).toBe(6);
+    expect(parseWeekday('Daily')).toBe('daily');
+    expect(parseWeekday('Funday')).toBeUndefined();
+  });
+
+  test('pasted spreadsheet cells (tab separated) with long dates', () => {
+    const paste = [
+      'Date\tTime\t#\tEvent\tBuy-in\tGTD',
+      'Saturday, December 19, 2026\t10:10 AM\t56\tNo Limit Hold\'em 1E\t$1,100\t$500K GTD',
+      '12/19/2026\t5:10 PM\t58\tNLH Bounty\t$200\t$20K',
+    ].join('\n');
+    const { rows, errors } = importScheduleFromCsv(paste);
+    expect(errors).toEqual([]);
+    expect(rows[0]).toMatchObject({ name: "Event #56 No Limit Hold'em 1E", event_date: '2026-12-19', start_time: '10:10', buy_in: 1100, guarantee: 500000, weekday: null });
+    expect(rows[1]).toMatchObject({ name: 'Event #58 NLH Bounty', start_time: '17:10', buy_in: 200, guarantee: 20000 });
+  });
+
+  test('weekly and daily rows use a Day column', () => {
+    const csv = 'Day,Time,Tournament,Buy-in\nMonday,7pm,Monday Night Bounty,250\nDaily,11am,Daily Deepstack,150';
+    const { rows, errors } = importScheduleFromCsv(csv);
+    expect(errors).toEqual([]);
+    expect(rows[0]).toMatchObject({ weekday: 1, event_date: null, start_time: '19:00' });
+    expect(rows[1]).toMatchObject({ weekday: null, event_date: null, name: 'Daily Deepstack' });
+  });
+
+  test('reports missing columns and bad rows', () => {
+    expect(importScheduleFromCsv('Event,Time\nA,11am').errors[0]).toMatch(/Buy-in, Date/);
+    const { rows, errors } = importScheduleFromCsv('Date,Event,Buy-in,Time\n2027-01-08,Kickoff,400,11am\nsoon,Bad,400,11am\n2027-01-09,Bad time,400,25:00');
+    expect(rows).toHaveLength(1);
+    expect(errors).toHaveLength(2);
+  });
+
+  test('a stray inch mark inside a cell is kept as text', () => {
+    expect(parseCsv('a,b\n5" table,x')).toEqual([['a', 'b'], ['5" table', 'x']]);
+  });
+});
+
+describe('catalog suggestions', () => {
+  // eslint-disable-next-line global-require
+  const { historySuggestions, mergeSuggestions, scheduleLabel, formatTime, fillFromSuggestion } = require('./catalog');
+  const history = [
+    { tournament_name: 'Borgata Daily $150', location: 'Borgata', buy_in: 150, date: '2026-11-01' },
+    { tournament_name: 'borgata  daily $150', location: 'borgata', buy_in: 150, date: '2026-11-08' },
+    { tournament_name: 'Wynn Signature $1,100', location: 'Wynn', buy_in: 1100, date: '2026-10-01' },
+    { tournament_name: 'Venetian $400', location: 'Venetian', buy_in: 400, date: '2026-09-01' },
+  ];
+
+  test('history groups repeats and matches every typed word', () => {
+    const all = historySuggestions(history, '');
+    expect(all[0]).toMatchObject({ name: 'Borgata Daily $150', count: 2, last_played: '2026-11-08' });
+    expect(historySuggestions(history, 'daily borg')).toHaveLength(1);
+    expect(historySuggestions(history, 'wynn')).toHaveLength(1);
+    expect(historySuggestions(history, 'aria')).toHaveLength(0);
+  });
+
+  test('merge drops history entries the catalog already has', () => {
+    const catalog = [{ id: 'c1', source: 'community', name: 'BORGATA DAILY $150', venue: 'Borgata', buy_in: 150 }];
+    const merged = mergeSuggestions(catalog, historySuggestions(history, ''));
+    expect(merged.map((m) => m.name)).toEqual(['BORGATA DAILY $150', 'Wynn Signature $1,100', 'Venetian $400']);
+  });
+
+  test('schedule labels', () => {
+    expect(formatTime('19:00:00')).toBe('7:00 PM');
+    expect(formatTime('00:30')).toBe('12:30 AM');
+    expect(scheduleLabel({ weekday: 1, start_time: '19:00' })).toBe('Every Monday, 7:00 PM');
+    expect(scheduleLabel({ source: 'official', start_time: '11:00' })).toBe('Daily, 11:00 AM');
+    expect(scheduleLabel({ source: 'community' })).toBe('');
+    expect(scheduleLabel({ event_date: '2027-01-12', start_time: '11:00' })).toMatch(/^Jan 12, 2027, 11:00 AM$/);
+  });
+
+  test('picking fills the form and keeps the catalog link', () => {
+    const current = { date: '2026-11-14', buy_in: '', game_type: 'NLH' };
+    expect(fillFromSuggestion({ id: 'e1', source: 'official', name: 'Event #5', venue: 'Borgata', buy_in: 600, event_date: '2027-01-12', game_type: 'PLO' }, current))
+      .toEqual({ tournament_name: 'Event #5', location: 'Borgata', buy_in: '600', game_type: 'PLO', date: '2027-01-12', catalog_event_id: 'e1' });
+    expect(fillFromSuggestion({ source: 'history', name: 'X', venue: 'Y', buy_in: 50 }, current))
+      .toMatchObject({ date: '2026-11-14', catalog_event_id: null, game_type: 'NLH' });
   });
 });

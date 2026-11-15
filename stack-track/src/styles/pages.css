@@ -639,3 +639,45 @@
 .event-date strong { font-size: var(--text-lg); color: var(--text); font-stretch: var(--wide); }
 .event-row.is-done .event-date { background: transparent; border: 1px solid var(--line); }
 .result-switch { padding-top: var(--s-3); border-top: 1px solid var(--line); }
+
+/* =========================================================
+   Schedules (journey picker + admin)
+   ========================================================= */
+.btn-reset { border: 0; background: none; padding: 0; cursor: pointer; }
+.schedule-cta {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  width: 100%;
+  padding: var(--s-4) var(--s-5);
+  text-align: left;
+  background: var(--surface);
+  border: 1px dashed rgba(237, 123, 63, 0.55);
+  border-radius: var(--r-lg);
+  color: var(--text);
+}
+.schedule-cta:hover { border-style: solid; background: var(--surface-2); }
+.schedule-cta > svg { color: var(--orange); flex: none; }
+.schedule-cta strong { display: block; }
+.schedule-cta .muted { display: block; font-size: var(--text-sm); }
+.schedule-picker { display: grid; gap: var(--s-4); }
+.schedule-picker h2 { font-size: var(--text-lg); }
+.schedule-picker .list { margin: 0 calc(-1 * var(--s-5)); border-top: 1px solid var(--line); }
+@media (max-width: 639px) { .schedule-picker .list { margin: 0 calc(-1 * var(--s-4)); } }
+.schedule-events { max-height: 420px; overflow-y: auto; }
+.schedule-picker-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  font-size: var(--text-sm);
+}
+
+.admin-grid { display: grid; gap: var(--s-5); grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 1000px) { .admin-grid { grid-template-columns: minmax(0, 320px) minmax(0, 1fr); align-items: start; } }
+.series-list .list-row.is-current { background: var(--orange-soft); }
+.paste-box { min-height: 140px; font-variant-numeric: tabular-nums; white-space: pre; overflow-x: auto; font-size: var(--text-sm); }
+.import-hint { font-size: var(--text-sm); color: var(--text-2); }
+.import-hint code { color: var(--text); background: var(--surface-3); padding: 1px 6px; border-radius: 4px; font-size: 0.85em; }
+.events-table td.r .icon-btn { width: 32px; height: 32px; }

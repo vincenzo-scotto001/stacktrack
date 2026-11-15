@@ -8,6 +8,8 @@ const DEFAULT_CAPS = {
   tournamentExtras: false, // entries, game_type, notes on tournaments
   notifications: false, // notifications table
   journeyLinks: false, // journey_tournaments.tournament_id
+  catalog: false, // tournament catalog (migration 003)
+  admin: false, // signed-in player can import official schedules
 };
 
 let caps = { ...DEFAULT_CAPS };
@@ -26,13 +28,23 @@ async function probe(query) {
 }
 
 export async function detectCapabilities() {
-  const [profiles, tournamentExtras, notifications, journeyLinks] = await Promise.all([
+  const [profiles, tournamentExtras, notifications, journeyLinks, catalog] = await Promise.all([
     probe(supabase.from('stacktrackmaster').select('username,bio,home_venue,share_results').limit(1)),
     probe(supabase.from('tournaments').select('entries,game_type,notes').limit(1)),
     probe(supabase.from('notifications').select('id').limit(1)),
     probe(supabase.from('journey_tournaments').select('tournament_id').limit(1)),
+    probe(supabase.from('tournaments').select('catalog_event_id').limit(1)),
   ]);
-  caps = { profiles, tournamentExtras, notifications, journeyLinks };
+  let admin = false;
+  if (catalog) {
+    try {
+      const { data } = await supabase.rpc('is_admin');
+      admin = data === true;
+    } catch (e) {
+      admin = false;
+    }
+  }
+  caps = { profiles, tournamentExtras, notifications, journeyLinks, catalog, admin };
   return caps;
 }
 

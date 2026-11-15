@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import {
-  House, Trophy, Route as RouteIcon, ChartNoAxesCombined, Newspaper, Users, Medal, Bell, Plus, Settings,
+  House, Trophy, Route as RouteIcon, ChartNoAxesCombined, Newspaper, Users, Medal, Bell, Plus, Settings, CalendarRange,
 } from 'lucide-react';
 import Logo from './Logo';
 import Avatar from '../ui/Avatar';
@@ -80,6 +80,12 @@ export default function AppShell() {
                 <Bell size={19} aria-hidden="true" />
                 Notifications
                 {unread > 0 && <span className="nav-count">{unread}</span>}
+              </NavLink>
+            )}
+            {caps.admin && (
+              <NavLink to="/admin/schedules" className="nav-link">
+                <CalendarRange size={19} aria-hidden="true" />
+                Schedules
               </NavLink>
             )}
             <NavLink to="/settings" className="nav-link">

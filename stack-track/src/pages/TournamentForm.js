@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { AlertCircle, Trash2 } from 'lucide-react';
+import { AlertCircle, Trash2, BadgeCheck } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
 import { PageLoader, ErrorState } from '../components/ui/States';
 import { useAuth } from '../context/AuthContext';
@@ -8,6 +8,8 @@ import { useUI } from '../context/UIContext';
 import useAsync from '../hooks/useAsync';
 import { listTournaments, createTournament, updateTournament, deleteTournaments } from '../api/tournaments';
 import { enrich } from '../lib/stats';
+import TournamentPicker from '../components/TournamentPicker';
+import { fillFromSuggestion, scheduleLabel } from '../lib/catalog';
 import { money, todayString } from '../lib/format';
 
 const EMPTY = {
@@ -21,6 +23,7 @@ const EMPTY = {
   place: '',
   winnings: '',
   notes: '',
+  catalog_event_id: null,
 };
 
 const GAMES = ['NLH', 'PLO', 'PLO8', 'Mixed', 'Stud', 'Other'];
@@ -38,19 +41,8 @@ function fromRow(t) {
     place: v(t.place),
     winnings: Number(t.winnings) ? v(t.winnings) : '',
     notes: t.notes || '',
+    catalog_event_id: t.catalog_event_id || null,
   };
-}
-
-/** Most-played tournaments, for one-tap prefill. */
-function regulars(list) {
-  const counts = new Map();
-  list.forEach((t) => {
-    const key = `${t.tournament_name}|${t.location}|${t.buy_in}`;
-    const c = counts.get(key) || { t, n: 0 };
-    c.n += 1;
-    counts.set(key, c);
-  });
-  return [...counts.values()].filter((c) => c.n > 1).sort((a, b) => b.n - a.n).slice(0, 4).map((c) => c.t);
 }
 
 export default function TournamentForm() {
@@ -61,6 +53,7 @@ export default function TournamentForm() {
   const { toast, confirm } = useUI();
   const history = useAsync(() => listTournaments(), []);
   const [values, setValues] = useState(EMPTY);
+  const [picked, setPicked] = useState(null);
   const [original, setOriginal] = useState(null);
   const [share, setShare] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -77,21 +70,27 @@ export default function TournamentForm() {
     }
   }, [editing, id, history.data]);
 
-  const names = useMemo(() => [...new Set(list.map((t) => t.tournament_name))].slice(0, 50), [list]);
   const venues = useMemo(() => [...new Set(list.map((t) => t.location).filter(Boolean))], [list]);
-  const quick = useMemo(() => (editing ? [] : regulars(list)), [list, editing]);
   const preview = enrich(values);
   const hasResultInput = values.place !== '' || values.winnings !== '';
 
-  const set = (k) => (e) => setValues((v) => ({ ...v, [k]: e.target.value }));
+  // Editing what identifies the tournament drops the catalog link; the
+  // database then matches or creates the right entry on save.
+  const LINK_FIELDS = ['tournament_name', 'location', 'buy_in'];
+  const update = (k, val) => {
+    setValues((v) => ({ ...v, [k]: val, ...(LINK_FIELDS.includes(k) ? { catalog_event_id: null } : {}) }));
+    if (LINK_FIELDS.includes(k)) setPicked(null);
+  };
+  const set = (k) => (e) => update(k, e.target.value);
 
-  const prefill = (t) => setValues((v) => ({
-    ...v,
-    tournament_name: t.tournament_name,
-    location: t.location || '',
-    buy_in: String(t.buy_in ?? ''),
-    game_type: t.game_type || v.game_type,
-  }));
+  const placeRef = useRef(null);
+  const pickSuggestion = (sugg) => {
+    setValues((v) => ({ ...v, ...fillFromSuggestion(sugg, v) }));
+    setPicked(sugg.source === 'history' ? null : sugg);
+    // Everything about the tournament is filled; the result is what's left.
+    setTimeout(() => placeRef.current && placeRef.current.focus(), 0);
+  };
+
 
   const submit = async (e) => {
     e.preventDefault();
@@ -148,18 +147,6 @@ export default function TournamentForm() {
         back={{ to: '/tournaments', label: 'Tournaments' }}
       />
 
-      {quick.length > 0 && (
-        <div className="quick-fill">
-          <span className="muted">Your regulars</span>
-          <div className="row wrap">
-            {quick.map((t) => (
-              <button key={t.id} type="button" className="chip-btn" onClick={() => prefill(t)}>
-                {t.tournament_name}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
 
       <form onSubmit={submit} className="panel form-panel">
         {error && (
@@ -174,8 +161,30 @@ export default function TournamentForm() {
           <div className="form-grid">
             <div className="field span-2">
               <label htmlFor="tournament_name">Name</label>
-              <input id="tournament_name" className="input" list="names" value={values.tournament_name} onChange={set('tournament_name')} placeholder="e.g. Borgata Fall Open $600 NLH" required autoFocus={!editing} />
-              <datalist id="names">{names.map((n) => <option key={n} value={n} />)}</datalist>
+              <TournamentPicker
+                id="tournament_name"
+                value={values.tournament_name}
+                onChange={(name) => update('tournament_name', name)}
+                onPick={pickSuggestion}
+                date={values.date}
+                placeholder="Start typing: venue, series or event"
+                required
+                autoFocus={!editing}
+                describedBy={picked ? 'picked-note' : undefined}
+              />
+              {picked && (
+                <p className="picked-note" id="picked-note">
+                  <BadgeCheck size={15} aria-hidden="true" />
+                  <span className="picked-text">
+                    <span>
+                      {picked.source === 'official' ? 'From the official schedule' : 'From the StackTrack catalog'}
+                      {picked.series_name ? `: ${picked.series_name}` : ''}
+                    </span>
+                    {scheduleLabel(picked) && <span className="faint">{scheduleLabel(picked)}</span>}
+                    {picked.guarantee ? <span className="faint num">{money(picked.guarantee)} guaranteed</span> : null}
+                  </span>
+                </p>
+              )}
             </div>
             <div className="field">
               <label htmlFor="date">Date</label>
@@ -219,7 +228,7 @@ export default function TournamentForm() {
           <div className="form-grid">
             <div className="field">
               <label htmlFor="place">Finish</label>
-              <input id="place" className="input" type="number" inputMode="numeric" min="1" step="1" value={values.place} onChange={set('place')} placeholder="e.g. 14" />
+              <input id="place" ref={placeRef} className="input" type="number" inputMode="numeric" min="1" step="1" value={values.place} onChange={set('place')} placeholder="e.g. 14" />
             </div>
             {caps.tournamentExtras && (
               <div className="field">
