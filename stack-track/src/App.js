@@ -26,6 +26,7 @@ const PlayerProfile = lazy(() => import('./pages/PlayerProfile'));
 const Notifications = lazy(() => import('./pages/Notifications'));
 const Settings = lazy(() => import('./pages/Settings'));
 const Post = lazy(() => import('./pages/Post'));
+const AdminSchedules = lazy(() => import('./pages/AdminSchedules'));
 
 function LegacyFriendRedirect() {
   const { friendId } = useParams();
@@ -64,6 +65,7 @@ export default function App() {
                   <Route path="/players/:id" element={<PlayerProfile />} />
                   <Route path="/notifications" element={<Notifications />} />
                   <Route path="/posts/:id" element={<Post />} />
+                  <Route path="/admin/schedules" element={<AdminSchedules />} />
                   <Route path="/settings" element={<Settings />} />
                 </Route>
               </Route>

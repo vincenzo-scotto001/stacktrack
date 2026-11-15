@@ -78,6 +78,98 @@ function makeResult(rand, ev) {
   return { place, winnings: Math.round((ev.buy * mult) / 5) * 5, entries: field };
 }
 
+
+// ---------------------------------------------------------------------
+// Tournament catalog (mirrors migration 003's trigger and search)
+// ---------------------------------------------------------------------
+const key = (s) => String(s || '').trim().replace(/\s+/g, ' ').toLowerCase();
+let catalogSeq = 0;
+
+/** Same rules as link_tournament_to_catalog() + count_catalog_player(). */
+export function linkTournament(db, t) {
+  if (!t.user_id || key(t.tournament_name).length < 2) return;
+  const name = key(t.tournament_name);
+  const venue = key(t.location);
+  let ev = t.catalog_event_id ? db.catalog_events.find((e) => e.id === t.catalog_event_id) : null;
+  if (!ev) {
+    const dow = t.date ? new Date(`${t.date}T12:00:00`).getDay() : null;
+    ev = db.catalog_events.find((e) => e.source === 'official' && key(e.name) === name && key(e.venue) === venue && e.event_date === t.date)
+      || db.catalog_events.find((e) => e.source === 'official' && key(e.name) === name && key(e.venue) === venue && !e.event_date && (e.weekday == null || e.weekday === dow))
+      || db.catalog_events.find((e) => e.source === 'community' && key(e.name) === name && key(e.venue) === venue && Number(e.buy_in) === Number(t.buy_in));
+  }
+  if (!ev) {
+    catalogSeq += 1;
+    ev = {
+      id: `ce-c${catalogSeq}`, series_id: null, source: 'community', name: String(t.tournament_name).trim().replace(/\s+/g, ' '),
+      venue: String(t.location || '').trim(), event_date: null, weekday: null, start_time: null, buy_in: Number(t.buy_in) || 0,
+      game_type: t.game_type || null, guarantee: null, player_count: 0, last_played: t.date, created_at: new Date().toISOString(),
+    };
+    db.catalog_events.push(ev);
+  }
+  t.catalog_event_id = ev.id;
+  if (!db.catalog_event_players.some((p) => p.event_id === ev.id && p.user_id === t.user_id)) {
+    db.catalog_event_players.push({ event_id: ev.id, user_id: t.user_id });
+    ev.player_count += 1;
+  }
+  if (!ev.last_played || t.date > ev.last_played) ev.last_played = t.date;
+}
+
+function seedCatalog(db, now) {
+  const at = (offset) => dayStr(daysAgo(now, -offset));
+  const series = (id, name, venue, city, start, end) => {
+    db.catalog_series.push({ id, name, venue, city, start_date: start, end_date: end, source_url: null, created_at: now.toISOString() });
+  };
+  const official = (seriesId, venue, rows) => rows.forEach(([name, date, time, buyIn, gtd, extra = {}], i) => {
+    db.catalog_events.push({
+      id: `ce-${seriesId}-${i}`, series_id: seriesId, source: 'official', name, venue, event_date: date, weekday: null,
+      start_time: time, buy_in: buyIn, game_type: extra.game || 'NLH', guarantee: gtd, player_count: 0, last_played: null,
+      created_at: now.toISOString(), ...extra.fields,
+    });
+  });
+
+  series('cs-shr', 'Seminole Hard Rock Showdown', 'Seminole Hard Rock', 'Hollywood, FL', at(-6), at(9));
+  official('cs-shr', 'Seminole Hard Rock', [
+    ['Event #1 $400 Kickoff', at(-6), '12:00', 400, 250000],
+    ['Event #4 $600 Deepstack', at(-4), '11:00', 600, 500000],
+    ['Event #7 $1,100 Bounty', at(-2), '12:00', 1100, 300000],
+    ['Event #9 $250 Turbo', at(1), '18:00', 250, 50000],
+    ['Event #11 $1,700 Main Event Day 1A', at(3), '11:00', 1700, 5000000],
+    ['Event #11 $1,700 Main Event Day 1B', at(4), '11:00', 1700, 5000000],
+    ['Event #15 $600 PLO', at(5), '13:00', 600, 100000, { game: 'PLO' }],
+    ['Event #18 $2,200 High Roller', at(7), '13:00', 2200, 1000000],
+    ['Event #20 $400 Closer', at(9), '11:00', 400, 150000],
+  ]);
+
+  series('cs-paradise', 'WSOP Paradise 2026', 'Atlantis Bahamas', 'Paradise Island', at(19), at(31));
+  official('cs-paradise', 'Atlantis Bahamas', [
+    ['Event #1 $1,500 Mystery Millions', at(19), '11:00', 1500, 10000000],
+    ['Event #3 $600 Deepstack', at(20), '12:00', 600, 1000000],
+    ['Event #6 $2,000 NLH', at(22), '12:00', 2000, 2000000],
+    ['Event #9 $1,500 PLO', at(24), '14:00', 1500, 1000000, { game: 'PLO' }],
+    ['Event #12 $5,000 Main Event', at(26), '11:00', 5000, 50000000],
+    ['Event #15 $25,000 High Roller', at(29), '13:00', 25000, 10000000],
+  ]);
+
+  series('cs-bwpo', 'Borgata Winter Poker Open 2027', 'Borgata', 'Atlantic City', at(55), at(72));
+  official('cs-bwpo', 'Borgata', [
+    ['Event #1 $400 NLH Kickoff', at(55), '11:00', 400, 100000],
+    ['Event #3 $250 NLH Bounty', at(57), '18:00', 250, 50000],
+    ['Event #5 $600 NLH Deepstack', at(59), '11:00', 600, 250000],
+    ['Event #8 $1,100 NLH 6-Max', at(62), '12:00', 1100, 200000],
+    ['Event #10 $3,500 Championship', at(66), '11:00', 3500, 3000000],
+    ['Event #14 $600 PLO', at(69), '12:00', 600, 75000, { game: 'PLO' }],
+  ]);
+
+  series('cs-borgata-daily', 'Borgata daily tournaments', 'Borgata', 'Atlantic City', null, null);
+  official('cs-borgata-daily', 'Borgata', [
+    ['Daily $150 Deepstack', null, '11:00', 150, 10000],
+    ['Monday Night $250 Bounty', null, '19:00', 250, 25000, { fields: { weekday: 1 } }],
+    ['Saturday $400 Big Stack', null, '12:00', 400, 75000, { fields: { weekday: 6 } }],
+  ]);
+
+  db.tournaments.forEach((t) => linkTournament(db, t));
+}
+
 export function seedDatabase(now) {
   const rand = rng(20261114);
   const db = {
@@ -95,6 +187,10 @@ export function seedDatabase(now) {
     activity_likes: [],
     activity_comments: [],
     notifications: [],
+    catalog_series: [],
+    catalog_events: [],
+    catalog_event_players: [],
+    app_admins: [{ user_id: DEMO_USER.id }],
   };
 
   let tid = 0;
@@ -233,5 +329,6 @@ export function seedDatabase(now) {
     j.total_buy_ins = db.journey_tournaments.filter((t) => t.journey_id === j.id).reduce((s, t) => s + t.buy_in, 0);
   });
 
+  seedCatalog(db, now);
   return db;
 }

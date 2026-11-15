@@ -6,6 +6,24 @@ import { hasResult } from '../lib/stats';
 const BASE_FIELDS = ['tournament_name', 'date', 'location', 'buy_in', 'action_sold', 'place', 'winnings'];
 const EXTRA_FIELDS = ['entries', 'game_type', 'notes'];
 
+// Your own tournaments, cached for suggestions while typing. Cleared on any
+// change so suggestions stay current.
+let historyCache = null;
+
+export function clearTournamentCache() {
+  historyCache = null;
+}
+
+export function getMyHistory() {
+  if (!historyCache) {
+    historyCache = listTournaments().catch((e) => {
+      historyCache = null;
+      throw e;
+    });
+  }
+  return historyCache;
+}
+
 /** Validate and normalise form values into a row for the tournaments table. */
 export function toRow(values) {
   const n = (v) => (v === '' || v == null ? null : Number(v));
@@ -38,11 +56,16 @@ export function toRow(values) {
     row.game_type = values.game_type || null;
     row.notes = String(values.notes || '').trim() || null;
   }
+  if (getCaps().catalog) {
+    // null lets the database match or create the catalog entry
+    row.catalog_event_id = values.catalog_event_id || null;
+  }
   return row;
 }
 
 function pick(row) {
-  const fields = getCaps().tournamentExtras ? [...BASE_FIELDS, ...EXTRA_FIELDS] : BASE_FIELDS;
+  const fields = getCaps().tournamentExtras ? [...BASE_FIELDS, ...EXTRA_FIELDS] : [...BASE_FIELDS];
+  if (getCaps().catalog) fields.push('catalog_event_id');
   const out = {};
   fields.forEach((f) => {
     if (row[f] !== undefined) out[f] = row[f];
@@ -84,6 +107,7 @@ export async function createTournament(values, { postToFeed = true } = {}) {
   const row = { ...pick(toRow(values)), user_id: uid };
   const { data, error } = await supabase.from('tournaments').insert(row).select().single();
   check(error, "Couldn't save the tournament.");
+  clearTournamentCache();
   if (postToFeed) {
     try {
       await createActivity(hasResult(data) ? 'tournament_finished' : 'tournament_added', data.id);
@@ -105,6 +129,7 @@ export async function updateTournament(id, values, previous) {
     .select()
     .single();
   check(error, "Couldn't save your changes.");
+  clearTournamentCache();
   // Adding a result to a shared registration posts the result once. If the
   // registration wasn't shared ("Share with friends" off), stay quiet.
   if (previous && !hasResult(previous) && hasResult(data)) {
@@ -145,6 +170,7 @@ export async function deleteTournaments(ids) {
   }
   const { error } = await supabase.from('tournaments').delete().in('id', ids).eq('user_id', uid);
   check(error, "Couldn't delete those tournaments.");
+  clearTournamentCache();
 }
 
 /** Bulk insert from a CSV import. Imports don't post to the feed. */
@@ -155,5 +181,6 @@ export async function importTournaments(rows) {
     const { error } = await supabase.from('tournaments').insert(payload.slice(i, i + 200));
     check(error, `Imported ${i} rows, then hit an error. Check the file and try again.`);
   }
+  clearTournamentCache();
   return payload.length;
 }

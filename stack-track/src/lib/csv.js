@@ -40,13 +40,19 @@ export function downloadText(filename, text, type = 'text/csv;charset=utf-8;') {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-/** RFC 4180-ish parser: handles quoted cells, escaped quotes and CRLF. */
-export function parseCsv(text) {
+/**
+ * RFC 4180-ish parser: handles quoted cells, escaped quotes and CRLF.
+ * Cells pasted from a spreadsheet arrive tab-separated, so the delimiter is
+ * detected from the first line unless given.
+ */
+export function parseCsv(text, delimiter) {
   const rows = [];
   let row = [];
   let cell = '';
   let quoted = false;
-  const src = String(text || '').replace(/^﻿/, '');
+  const src = String(text || '').replace(/^\uFEFF/, '');
+  const firstLine = src.split(/\r?\n/, 1)[0] || '';
+  const sep = delimiter || (firstLine.includes('\t') ? '\t' : ',');
   for (let i = 0; i < src.length; i += 1) {
     const ch = src[i];
     if (quoted) {
@@ -56,8 +62,8 @@ export function parseCsv(text) {
           i += 1;
         } else quoted = false;
       } else cell += ch;
-    } else if (ch === '"') quoted = true;
-    else if (ch === ',') {
+    } else if (ch === '"' && cell === '') quoted = true;
+    else if (ch === sep) {
       row.push(cell);
       cell = '';
     } else if (ch === '\n' || ch === '\r') {
@@ -164,5 +170,141 @@ export function importTournamentsFromCsv(text) {
     return null;
   });
 
+  return { rows, errors, mapped };
+}
+
+// ---------------------------------------------------------------------
+// Schedules (admin import of official series schedules)
+// ---------------------------------------------------------------------
+
+const SCHEDULE_ALIASES = {
+  event_date: ['date', 'event date', 'start date'],
+  weekday: ['day', 'weekday', 'every', 'repeats'],
+  start_time: ['time', 'start', 'start time', 'starts'],
+  name: ['event', 'name', 'tournament', 'tournament name', 'event name', 'title'],
+  event_number: ['#', 'no', 'no.', 'event #', 'event number', 'number'],
+  buy_in: ['buy-in', 'buy in', 'buyin', 'cost', 'entry'],
+  game_type: ['game', 'game type', 'variant'],
+  guarantee: ['guarantee', 'gtd', 'guaranteed', 'prize pool'],
+  venue: ['venue', 'location', 'casino', 'room'],
+};
+
+function matchScheduleField(header) {
+  const h = header.trim().toLowerCase().replace(/\s*\(.*\)\s*$/, '');
+  for (const [field, aliases] of Object.entries(SCHEDULE_ALIASES)) {
+    if (aliases.includes(h)) return field;
+  }
+  return null;
+}
+
+const WEEKDAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+
+/** "Mon", "Monday", "mondays" → 1; "Daily"/"Every day" → 'daily'; else null. */
+export function parseWeekday(value) {
+  const v = String(value || '').trim().toLowerCase();
+  if (!v) return null;
+  if (/^(daily|every ?day|all)$/.test(v)) return 'daily';
+  const i = WEEKDAYS.indexOf(v.slice(0, 3));
+  return i === -1 ? undefined : i;
+}
+
+/** "11:00 AM", "11am", "7:10 pm", "19:00", "1900" → "HH:MM" (24h); bad → undefined. */
+export function parseTime(value) {
+  const v = String(value || '').trim().toLowerCase().replace(/\./g, '');
+  if (!v) return null;
+  const m = /^(\d{1,2})(?::?(\d{2}))?\s*(am|pm|a|p)?$/.exec(v);
+  if (!m) return undefined;
+  let h = Number(m[1]);
+  const min = Number(m[2] || 0);
+  const ap = m[3];
+  if (ap) {
+    if (h < 1 || h > 12) return undefined;
+    if (ap.startsWith('p') && h !== 12) h += 12;
+    if (ap.startsWith('a') && h === 12) h = 0;
+  }
+  if (h > 23 || min > 59) return undefined;
+  return `${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
+}
+
+/** "$500K GTD" → 500000, "$1.5M" → 1500000, "$25,000" → 25000. */
+export function parseAmount(value) {
+  if (value == null) return null;
+  const v = String(value).trim().toLowerCase().replace(/gtd|guaranteed|\$|,|\s/g, '');
+  if (v === '' || v === '-' || v === '—') return null;
+  const m = /^(\d+(?:\.\d+)?)([km])?$/.exec(v);
+  if (!m) return NaN;
+  const mult = m[2] === 'm' ? 1_000_000 : m[2] === 'k' ? 1000 : 1;
+  return Math.round(Number(m[1]) * mult * 100) / 100;
+}
+
+/**
+ * Turn a pasted or uploaded schedule into catalog event rows.
+ * Each row needs an event name, a buy-in, and either a Date (one-off event)
+ * or a Day (weekly: "Monday"; or "Daily").
+ * Returns { rows, errors, mapped }.
+ */
+export function importScheduleFromCsv(text) {
+  const grid = parseCsv(text);
+  if (grid.length < 2) {
+    return { rows: [], errors: ['Paste a header row and at least one event.'], mapped: [] };
+  }
+  const fields = grid[0].map(matchScheduleField);
+  const mapped = fields.filter(Boolean);
+  const missing = [];
+  if (!fields.includes('name')) missing.push('Event');
+  if (!fields.includes('buy_in')) missing.push('Buy-in');
+  if (!fields.includes('event_date') && !fields.includes('weekday')) missing.push('Date (or Day for weekly events)');
+  if (missing.length) {
+    return { rows: [], errors: [`Add a column for ${missing.join(', ')} and try again.`], mapped };
+  }
+
+  const rows = [];
+  const errors = [];
+  grid.slice(1).forEach((cells, idx) => {
+    const line = idx + 2;
+    const raw = {};
+    fields.forEach((f, i) => {
+      if (f) raw[f] = (cells[i] ?? '').trim();
+    });
+    let name = raw.name || '';
+    if (raw.event_number && !/^event\s*#/i.test(name)) {
+      const n = raw.event_number.replace(/^#/, '');
+      name = `Event #${n}${name ? ` ${name}` : ''}`;
+    }
+    if (!name) return errors.push(`Row ${line}: missing event name.`);
+
+    let eventDate = null;
+    let weekday = null;
+    if (raw.event_date) {
+      const d = parseDay(raw.event_date);
+      if (!d || Number.isNaN(d.getTime())) return errors.push(`Row ${line}: "${raw.event_date}" isn't a date.`);
+      eventDate = toDayString(d);
+    } else if (raw.weekday) {
+      const w = parseWeekday(raw.weekday);
+      if (w === undefined) return errors.push(`Row ${line}: "${raw.weekday}" isn't a day of the week.`);
+      weekday = w === 'daily' ? null : w;
+    } else {
+      return errors.push(`Row ${line}: add a date, or a day for weekly events.`);
+    }
+
+    const time = parseTime(raw.start_time);
+    if (time === undefined) return errors.push(`Row ${line}: "${raw.start_time}" isn't a time.`);
+    const buyIn = parseAmount(raw.buy_in);
+    if (buyIn == null || Number.isNaN(buyIn)) return errors.push(`Row ${line}: buy-in must be an amount.`);
+    const guarantee = parseAmount(raw.guarantee);
+    if (Number.isNaN(guarantee)) return errors.push(`Row ${line}: "${raw.guarantee}" isn't an amount.`);
+
+    rows.push({
+      name: name.replace(/\s+/g, ' ').trim(),
+      event_date: eventDate,
+      weekday,
+      start_time: time,
+      buy_in: buyIn,
+      game_type: raw.game_type || null,
+      guarantee: guarantee || null,
+      venue: raw.venue || null,
+    });
+    return null;
+  });
   return { rows, errors, mapped };
 }
