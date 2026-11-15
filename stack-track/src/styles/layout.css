@@ -20,6 +20,7 @@
 }
 .logo:hover { color: var(--text); }
 .logo-chip {
+  position: relative;
   width: 26px;
   height: 26px;
   border-radius: 50%;
@@ -27,13 +28,48 @@
   display: grid;
   place-items: center;
 }
+/* Motion blur: at speed the white edge spots smear into one pale ring, the
+   average of 14° white and 31° orange. Also hides wagon-wheel strobing. */
+.logo-chip::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: #efa176;
+  opacity: 0;
+}
 .logo-chip::after {
   content: '';
+  position: relative;
   width: 70%;
   height: 70%;
   border-radius: 50%;
   background: var(--orange);
   box-shadow: inset 0 0 0 1.5px var(--surface), inset 0 0 0 4px var(--orange);
+}
+
+/* Spun flat on the felt: a quick flick, then friction slows it to a stop.
+   Angle and duration are set per spin by Logo.js. */
+.logo-chip.is-spinning {
+  animation:
+    chip-spin var(--spin-duration, 1.7s) cubic-bezier(0.18, 0.7, 0.3, 1) both,
+    chip-flick 0.32s cubic-bezier(0.3, 0.7, 0.4, 1.5);
+}
+.logo-chip.is-spinning::before {
+  animation: chip-blur var(--spin-duration, 1.7s) linear both;
+}
+@keyframes chip-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(var(--spin-angle, 1080deg)); }
+}
+@keyframes chip-flick {
+  from { scale: 0.84; }
+  to { scale: 1; }
+}
+@keyframes chip-blur {
+  0% { opacity: 0; }
+  6%, 30% { opacity: 0.85; }
+  65%, 100% { opacity: 0; }
 }
 
 /* Sidebar */
